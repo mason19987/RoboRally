@@ -53,6 +53,21 @@ public class GameController {
         //   - the counter of moves in the game should be increased by one
         //     if the player is moved
 
+        int amountOfPlayers = board.getPlayersNumber(); // Get the amount of players in array from bord class
+
+        Player currentplayer = board.getCurrentPlayer(); // Get the current player from boar class
+
+        int currentPlayerNumber = board.getPlayerNumber(currentplayer);
+
+                if (space.getPlayer() == null) {           // Chek place not occupated
+                    space.setPlayer(currentplayer);     // if place free then move the player 1
+                    if (currentPlayerNumber + 1 > amountOfPlayers) { // condation for last player to start from index 0
+                        board.setCurrentPlayer(board.getPlayer(0));
+                    } else {
+                        board.setCurrentPlayer(board.getPlayer(currentPlayerNumber + 1));
+                    }
+                }
+
     }
 
     /**
