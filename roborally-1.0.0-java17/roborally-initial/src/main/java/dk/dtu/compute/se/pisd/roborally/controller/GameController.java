@@ -28,12 +28,17 @@ import org.jetbrains.annotations.NotNull;
  * ...
  *
  * @author Ekkart Kindler, ekki@dtu.dk
- *
+ * @version $Id: $Id
  */
 public class GameController {
 
     final public Board board;
 
+    /**
+     * <p>Constructor for GameController.</p>
+     *
+     * @param board a {@link dk.dtu.compute.se.pisd.roborally.model.Board} object.
+     */
     public GameController(@NotNull Board board) {
         this.board = board;
     }
@@ -44,7 +49,7 @@ public class GameController {
      *
      * @param space the space to which the current player should move
      */
-    public void moveCurrentPlayerToSpace(@NotNull Space space)  {
+    public void moveCurrentPlayerToSpace(@NotNull Space space) {
         // TODO Assignment V1: method should be implemented by the students:
         //   - the current player should be moved to the given space
         //     (if it is free()
@@ -53,22 +58,30 @@ public class GameController {
         //   - the counter of moves in the game should be increased by one
         //     if the player is moved
 
-        int amountOfPlayers = board.getPlayersNumber(); // Get the amount of players in array from bord class
 
-        Player currentplayer = board.getCurrentPlayer(); // Get the current player from boar class
+        /**
+         * In this method we change the current player's turn to move
+         *
+         * @author Mohamad Anwar Meri, s215713@dtu.dk
+         * @author Safi Meissam, s224298@dtu.dk
+         */
 
-        int currentPlayerNumber = board.getPlayerNumber(currentplayer);
 
-                if (space.getPlayer() == null) {           // Chek place not occupated
-                    space.setPlayer(currentplayer);     // if place free then move the player 1
-                    if (currentPlayerNumber + 1 > amountOfPlayers) { // condation for last player to start from index 0
-                        board.setCurrentPlayer(board.getPlayer(0));
-                    } else {
-                        board.setCurrentPlayer(board.getPlayer(currentPlayerNumber + 1));
-                    }
-                }
+        Player currentPlayer = board.getCurrentPlayer(); // Get the current player from boar class
+        if (currentPlayer != null) {  // if currentPlayer not null
+            if (space.getPlayer() == null) { //if the place of the player is null
+                currentPlayer.setSpace(space); // Move the player to space.
+                int currentPlayerNumber = board.getPlayerNumber(currentPlayer);
+                Player nextplayer = board.getPlayer((currentPlayerNumber + 1) % board.getPlayersNumber());
+                board.setCurrentPlayer(nextplayer);
 
+                board.setCount(board.getCount() + 1);
+
+            }
+        }
     }
+
+
 
     /**
      * A method called when no corresponding controller operation is implemented yet.
@@ -79,6 +92,13 @@ public class GameController {
         //     is not yet implemented
     };
 
+    /**
+     * <p>moveCards.</p>
+     *
+     * @param source a {@link dk.dtu.compute.se.pisd.roborally.model.CommandCardField} object.
+     * @param target a {@link dk.dtu.compute.se.pisd.roborally.model.CommandCardField} object.
+     * @return a boolean.
+     */
     public boolean moveCards(@NotNull CommandCardField source, @NotNull CommandCardField target) {
         CommandCard sourceCard = source.getCard();
         CommandCard targetCard = target.getCard();
