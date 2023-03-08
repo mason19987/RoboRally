@@ -59,7 +59,7 @@ public class GameController {
         //     if the player is moved
 
 
-        /**
+         /**
          * In this method we change the current player's turn to move
          *
          * @author Mohamad Anwar Meri, s215713@dtu.dk
@@ -221,25 +221,74 @@ public class GameController {
         }
     }
 
+    /**
+     * This method make the robots push each other forward.
+     * When the player lands on a field, where there is already a robot,
+     * the robot will be pushed on forward.
+     *
+     * @param player a {@link dk.dtu.compute.se.pisd.roborally.model.Player} object.
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
+
     // TODO Assignment V2
     public void moveForward(@NotNull Player player) {
-        
+            Space space = player.getSpace(); // The position of the player who has to move, here the field where the player stands
+            if (space != null && player.board == space.board){
+            Heading heading = player.getHeading();
+            Space target = board.getNeighbour(space, heading);
+            if (target != null && target.getPlayer() == null) {//if target not null and if there is no player in that field yet
+                player.setSpace(target); //here we make player.setSpace move to target
+
+            }
         }
+    }
 
-
+    /**
+     * As we can see at this method, we call the moveForward function twice.
+     * That means the player should move two times forward.
+     *
+     * @param player a {@link dk.dtu.compute.se.pisd.roborally.model.Player} object.
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
     // TODO Assignment V2
     public void fastForward(@NotNull Player player) {
-
+        moveForward(player);
+        moveForward(player);
     }
 
+    /**
+     * At this method we turn the player to the specific direction,
+     * that the player choose from programming cards.
+     * At this method the player turns to the right
+     *
+     * @param player a {@link dk.dtu.compute.se.pisd.roborally.model.Player} object.
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
     // TODO Assignment V2
     public void turnRight(@NotNull Player player) {
-
+        Heading playerHeading = player.getHeading();
+        if (playerHeading != null) {
+            Heading newPlayerHeading = playerHeading.next();
+            player.setHeading(newPlayerHeading);
+        }
     }
+
+    /**
+     * At this method we turn the player to the specific direction,
+     * that the player choose from programming cards.
+     * At this method the player turns to the left
+     *
+     * @param player a {@link dk.dtu.compute.se.pisd.roborally.model.Player} object.
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
 
     // TODO Assignment V2
     public void turnLeft(@NotNull Player player) {
-
+        Heading playerHeading = player.getHeading();
+        if (playerHeading != null){
+            Heading newPlayerHeading1 = playerHeading.prev();
+            player.setHeading(newPlayerHeading1);
+        }
     }
 
     public boolean moveCards(@NotNull CommandCardField source, @NotNull CommandCardField target) {
@@ -262,5 +311,4 @@ public class GameController {
         // XXX just for now to indicate that the actual method is not yet implemented
         assert false;
     }
-
 }

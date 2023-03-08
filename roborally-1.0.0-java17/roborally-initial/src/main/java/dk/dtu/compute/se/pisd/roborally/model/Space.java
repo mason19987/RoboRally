@@ -23,6 +23,7 @@ package dk.dtu.compute.se.pisd.roborally.model;
 
 import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
 
+
 /**
  * ...
  *
@@ -37,6 +38,7 @@ public class Space extends Subject {
     public final int y;
 
     private Player player;
+
 
     public Space(Board board, int x, int y) {
         this.board = board;
@@ -71,5 +73,4 @@ public class Space extends Subject {
         // notify the space of these changes by calling this method.
         notifyChange();
     }
-
 }

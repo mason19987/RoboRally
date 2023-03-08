@@ -219,6 +219,15 @@ public class Board extends Subject {
         //      status line should show the current player and the number
         //      of the current move!
 
+
+        /**
+         * This string show information on situation, that introduce a counter to the Board
+         * which is counted up every time a player makes a move.
+         * The status line show the current player and the number of the current move
+         *
+         * @author Mohamad Anwar Meri, s215713@dtu.dk
+         */
+
         // XXX: V2 changed the status so that it shows the phase, the player and the step
         return "Phase: " + getPhase().name() +
                 ", Player = " + getCurrentPlayer().getName() + ", The Number Of Moves " + getCount()+
