@@ -9,6 +9,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+/**
+ * We are going to test GameController at this class
+ * @author Mohamad Anwar Meri, s215713@dtu.dk
+ */
 class GameControllerTest {
 
     private final int TEST_WIDTH = 8;
@@ -42,9 +48,9 @@ class GameControllerTest {
 
         gameController.moveCurrentPlayerToSpace(board.getSpace(0, 4));
 
-        Assertions.assertEquals(player1, board.getSpace(0, 4).getPlayer(), "Player " + player1.getName() + " should beSpace (0,4)!");
+        assertEquals(player1, board.getSpace(0, 4).getPlayer(), "Player " + player1.getName() + " should beSpace (0,4)!");
         Assertions.assertNull(board.getSpace(0, 0).getPlayer(), "Space (0,0) should be empty!");
-        Assertions.assertEquals(player2, board.getCurrentPlayer(), "Current player should be " + player2.getName() +"!");
+        assertEquals(player2, board.getCurrentPlayer(), "Current player should be " + player2.getName() +"!");
     }
 
     @Test
@@ -54,9 +60,60 @@ class GameControllerTest {
 
         gameController.moveForward(current);
 
-        Assertions.assertEquals(current, board.getSpace(0, 1).getPlayer(), "Player " + current.getName() + " should beSpace (0,1)!");
-        Assertions.assertEquals(Heading.SOUTH, current.getHeading(), "Player 0 should be heading SOUTH!");
+        assertEquals(current, board.getSpace(0, 1).getPlayer(), "Player " + current.getName() + " should beSpace (0,1)!");
+        assertEquals(Heading.SOUTH, current.getHeading(), "Player 0 should be heading SOUTH!");
         Assertions.assertNull(board.getSpace(0, 0).getPlayer(), "Space (0,0) should be empty!");
     }
 
-}
+    /**
+     *
+     * Here we're testing the method turnRight to check if the player turn to the specific direction.
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
+    @Test
+    void turnRight() {
+        Board board = gameController.board;
+        Player player = board.getPlayer(3);
+        player.setHeading(Heading.SOUTH);
+
+        gameController.turnRight(player);
+        assertEquals(player.getHeading(),Heading.WEST," " + player.getName() + " should be heading " + player.getHeading());
+
+    }
+
+    /**
+     *
+     * Here we're testing the method turnLeft to check if the player turn to the specific direction.
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
+
+    @Test
+    void turnLeft() {
+        Board board = gameController.board;
+        Player player = board.getPlayer(4);
+        player.setHeading(Heading.SOUTH);
+
+        gameController.turnLeft(player);
+        assertEquals(player.getHeading(),Heading.EAST," " + player.getName() + " should be heading " + player.getHeading());
+    }
+
+    /**
+     *
+     * We're testing the method fastForward to check if the player move two times forward.
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
+    @Test
+    void fastForward() {
+        Board board = gameController.board;
+        Player current = board.getCurrentPlayer();
+
+        gameController.fastForward(current);
+
+        assertEquals(current, board.getSpace(0, 2).getPlayer(),  current.getName() + " should beSpace (0,2)!");
+        assertEquals(Heading.SOUTH, current.getHeading(), "Player 1 should be heading South!");
+        Assertions.assertNull(board.getSpace(0, 0).getPlayer(), "Space (0,0) should be empty!");
+    }
+
+    }
+
+
