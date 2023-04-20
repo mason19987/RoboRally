@@ -198,6 +198,36 @@ public class Board extends Subject {
                 x = (x + 1) % width;
                 break;
         }
+        return getSpace(x, y);
+    }
+
+
+
+    /**
+     * Method to make the player move one field backwards
+     * @param space the field the player must land on
+     * @param heading direction on the field
+     * @return field behind the player
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
+
+    public Space getBack(@NotNull Space space, @NotNull Heading heading) {
+        int x = space.x;
+        int y = space.y;
+        switch (heading) {
+            case SOUTH:
+                y = (y - 1) % height;
+                break;
+            case WEST:
+                x = (x + width + 1) % width;
+                break;
+            case NORTH:
+                y = (y + height + 1) % height;
+                break;
+            case EAST:
+                x = (x + 1) % width;
+                break;
+        }
 
         return getSpace(x, y);
     }
@@ -257,4 +287,5 @@ public class Board extends Subject {
             notifyChange();
         }
     }
+
 }

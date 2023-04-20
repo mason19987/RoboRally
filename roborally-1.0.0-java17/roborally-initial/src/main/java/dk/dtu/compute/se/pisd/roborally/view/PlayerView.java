@@ -40,27 +40,27 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PlayerView extends Tab implements ViewObserver {
 
-    private Player player;
+    private final Player player;
 
-    private VBox top;
+    private final VBox top;
 
-    private Label programLabel;
-    private GridPane programPane;
-    private Label cardsLabel;
-    private GridPane cardsPane;
+    private final Label programLabel;
+    private final GridPane programPane;
+    private final Label cardsLabel;
+    private final GridPane cardsPane;
 
-    private CardFieldView[] programCardViews;
-    private CardFieldView[] cardViews;
+    private final CardFieldView[] programCardViews;
+    private final CardFieldView[] cardViews;
 
-    private VBox buttonPanel;
+    private final VBox buttonPanel;
 
-    private Button finishButton;
-    private Button executeButton;
-    private Button stepButton;
+    private final Button finishButton;
+    private final Button executeButton;
+    private final Button stepButton;
 
-    private VBox playerInteractionPanel;
+    private final VBox playerInteractionPanel;
 
-    private GameController gameController;
+    private final GameController gameController;
 
     public PlayerView(@NotNull GameController gameController, @NotNull Player player) {
         super(player.getName());
@@ -91,13 +91,13 @@ public class PlayerView extends Tab implements ViewObserver {
         //      refactored.
 
         finishButton = new Button("Finish Programming");
-        finishButton.setOnAction( e -> gameController.finishProgrammingPhase());
+        finishButton.setOnAction(e -> gameController.finishProgrammingPhase());
 
         executeButton = new Button("Execute Program");
-        executeButton.setOnAction( e-> gameController.executePrograms());
+        executeButton.setOnAction(e -> gameController.executePrograms());
 
         stepButton = new Button("Execute Current Register");
-        stepButton.setOnAction( e-> gameController.executeStep());
+        stepButton.setOnAction(e -> gameController.executeStep());
 
         buttonPanel = new VBox(finishButton, executeButton, stepButton);
         buttonPanel.setAlignment(Pos.CENTER_LEFT);
@@ -138,7 +138,7 @@ public class PlayerView extends Tab implements ViewObserver {
             for (int i = 0; i < Player.NO_REGISTERS; i++) {
                 CardFieldView cardFieldView = programCardViews[i];
                 if (cardFieldView != null) {
-                    if (player.board.getPhase() == Phase.PROGRAMMING ) {
+                    if (player.board.getPhase() == Phase.PROGRAMMING) {
                         cardFieldView.setBackground(CardFieldView.BG_DEFAULT);
                     } else {
                         if (i < player.board.getStep()) {
@@ -199,22 +199,56 @@ public class PlayerView extends Tab implements ViewObserver {
                 playerInteractionPanel.getChildren().clear();
 
                 if (player.board.getCurrentPlayer() == player) {
-                    // TODO Assignment V3: these buttons should be shown only when there is
+
+                    // TODO Assignment P3: these buttons should be shown only when there is
                     //      an interactive command card, and the buttons should represent
                     //      the player's choices of the interactive command card. The
                     //      following is just a mockup showing two options
-                    Button optionButton = new Button("Option1");
-                    optionButton.setOnAction( e -> gameController.notImplemented());
+
+                    /**
+                     * The reason we have labeled the below code with the comments is because we don't have to show them.
+                     * We don't have to show them because the player instead of showing the fixed options "option 1 and option 2"
+                     * should we instead show the options that are possible for this player.
+                     */
+
+                    /*Button optionButton = new Button("Option1");
+                    optionButton.setOnAction(e -> gameController.notImplemented());
                     optionButton.setDisable(false);
                     playerInteractionPanel.getChildren().add(optionButton);
 
                     optionButton = new Button("Option 2");
-                    optionButton.setOnAction( e -> gameController.notImplemented());
+                    optionButton.setOnAction(e -> gameController.notImplemented());
                     optionButton.setDisable(false);
                     playerInteractionPanel.getChildren().add(optionButton);
+                }*/
+
+                    // TODO Assignment P3
+                    /**
+                     * we program a loop in this blow code, that  shows the real options of the robot's current interactive command card.
+                     * Firstly access the current card, then access the list with the command options
+                     * and program a loop that adds a button on the current panel to each option.
+                     * @author Mohamad Anwar Meri, s215713@dtu.dk
+                     */
+
+                    CommandCardField register = player.getProgramField(player.board.getStep());//Finding out what the player's cards are "current cards"
+                    //and we need to find out what register we are playing right now, so that's the ProgramField the player has to play inside.
+                    if (register != null) { // Checks if field is not null
+                        CommandCard card = register.getCard(); //If field is not null, then we ask field which card you have, so give me a command card.
+                        if (card != null) { //Checks if card is not null
+                            for (Command option : card.command.getOptions()) {
+                                Button optionButton = new Button(option.displayName);//Create a button
+                                optionButton.setOnAction(e -> gameController.executeCommandOptionsAndContinue(option));//If the button is pressed, we call executeCommandOptionsAndContinue with the option that the button corresponds to.
+                                optionButton.setDisable(false);
+                                playerInteractionPanel.getChildren().add(optionButton);
+
+
+                            }
+                        }
+                    }
                 }
+
             }
         }
     }
-
 }
+

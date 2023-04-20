@@ -38,4 +38,14 @@ public enum Heading {
     public Heading prev() {
         return values()[(this.ordinal() + values().length - 1) % values().length];
     }
+
+
+    /**
+     * Adding the method so the player can change his direction 180 degrees
+     * @return
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
+    public Heading round() {
+        return values()[(this.ordinal() + 2) % values().length];
+    }
 }

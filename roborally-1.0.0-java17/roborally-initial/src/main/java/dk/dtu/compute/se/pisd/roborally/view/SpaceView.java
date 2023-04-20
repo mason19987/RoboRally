@@ -25,12 +25,10 @@ import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
 import dk.dtu.compute.se.pisd.roborally.model.Heading;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.Space;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
-import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -73,29 +71,100 @@ public class SpaceView extends StackPane implements ViewObserver {
     }
 
     private void updatePlayer() {
-        this.getChildren().clear();
 
         Player player = space.getPlayer();
         if (player != null) {
             Polygon arrow = new Polygon(0.0, 0.0,
                     10.0, 20.0,
-                    20.0, 0.0 );
+                    20.0, 0.0);
             try {
                 arrow.setFill(Color.valueOf(player.getColor()));
             } catch (Exception e) {
                 arrow.setFill(Color.MEDIUMPURPLE);
             }
 
-            arrow.setRotate((90*player.getHeading().ordinal())%360);
+            arrow.setRotate((90 * player.getHeading().ordinal()) % 360);
             this.getChildren().add(arrow);
         }
     }
 
+    /**
+     * We draw here all the walls
+     * @param subject
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
     @Override
     public void updateView(Subject subject) {
         if (subject == this.space) {
-            updatePlayer();
-        }
-    }
+            this.getChildren().clear();
 
-}
+            Pane pane = new Pane();
+            Rectangle rectangles = new Rectangle(0.0, 0.0, SPACE_WIDTH, SPACE_HEIGHT);
+            rectangles.setFill(Color.TRANSPARENT);
+            pane.getChildren().add(rectangles);
+            for (Heading wall : space.getWall()) {
+                if (wall == Heading.SOUTH) {
+                    Line line = new Line(2, SPACE_HEIGHT - 2, SPACE_WIDTH - 2, SPACE_HEIGHT - 2);
+                    line.setStroke(Color.RED);
+                    line.setStrokeWidth(5);
+                    line.setStrokeLineCap(StrokeLineCap.ROUND);
+                    pane.getChildren().add(line);
+                }
+                this.getChildren().add(pane);
+            }
+            Pane paneE = new Pane();
+            Rectangle rectangle1 = new Rectangle(0.0, 0.0, SPACE_WIDTH, SPACE_HEIGHT);
+            rectangle1.setFill(Color.TRANSPARENT);
+            paneE.getChildren().add(rectangle1);
+            for (Heading wall : space.getWall()) {
+                if (wall == Heading.EAST) {
+                    Line line = new Line(SPACE_WIDTH - 2, 2, SPACE_WIDTH - 2, SPACE_HEIGHT - 2);
+                    line.setStroke(Color.RED);
+                    line.setStrokeWidth(5);
+                    line.setStrokeLineCap(StrokeLineCap.ROUND);
+                    paneE.getChildren().add(line);
+                }
+                this.getChildren().add(paneE);
+            }
+
+            Pane paneN = new Pane();
+            Rectangle rectangle = new Rectangle(0.0, 0.0, SPACE_WIDTH, SPACE_HEIGHT);
+            rectangle.setFill(Color.TRANSPARENT);
+            paneN.getChildren().add(rectangle);
+            for (Heading wall : space.getWall()) {
+                if (wall == Heading.NORTH) {
+                    Line line = new Line(2, 2, SPACE_WIDTH - 2, 2);
+                    line.setStroke(Color.RED);
+                    line.setStrokeWidth(5);
+                    line.setStrokeLineCap(StrokeLineCap.ROUND);
+                    paneN.getChildren().add(line);
+                }
+                this.getChildren().add(paneN);
+            }
+
+            Pane paneW = new Pane();
+            Rectangle rectangle2 = new Rectangle(0.0, 0.0, SPACE_WIDTH, SPACE_HEIGHT);
+            rectangle2.setFill(Color.TRANSPARENT);
+            paneW.getChildren().add(rectangle2);
+            for (Heading wall : space.getWall()) {
+                if (wall == Heading.WEST) {
+                    Line line = new Line(2, 2, 2, SPACE_HEIGHT - 2);
+                    line.setStroke(Color.RED);
+                    line.setStrokeWidth(5);
+                    line.setStrokeLineCap(StrokeLineCap.ROUND);
+                    paneW.getChildren().add(line);
+                }
+                this.getChildren().add(paneW);
+            }
+        }
+                //Her tegnes spilleren
+                updatePlayer();
+
+            }
+        }
+
+
+
+
+
+

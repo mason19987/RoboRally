@@ -38,12 +38,47 @@ public enum Command {
     FORWARD("Forward"),
     RIGHT("Turn Right"),
     LEFT("Turn Left"),
-    FAST_FORWARD("Fast Forward");
+    FAST_FORWARD("Fast Forward"),
+    
+    // TODO XXX Assignment P3
+    /**
+     * Adding new missing programming card
+     *
+     * @author Mohamad Anwar Meri, s215713@dtu.dk
+     */
+    OPTION_LEFT_RIGHT("Left or Right", LEFT, RIGHT),
+
+    REARWARDS("Move one back"),
+
+    THREE_FORWARD("Move three forward "),
+
+    HALF_ROTATION("Turn 180 degrees");
+
+
 
     final public String displayName;
 
-    Command(String displayName) {
+    // XXX Assignment P3
+    // Command(String displayName) {
+    //     this.displayName = displayName;
+    // }
+    //
+    // replaced by the code below:
+
+    final private List<Command> options;
+
+    Command(String displayName, Command... options) {
         this.displayName = displayName;
+        this.options = Collections.unmodifiableList(Arrays.asList(options));
+    }
+
+    public boolean isInteractive() {
+        return !options.isEmpty();
+    }
+
+    public List<Command> getOptions() {
+        return options;
     }
 
 }
+
