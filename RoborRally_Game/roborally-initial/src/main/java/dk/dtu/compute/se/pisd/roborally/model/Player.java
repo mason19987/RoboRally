@@ -22,6 +22,8 @@
 package dk.dtu.compute.se.pisd.roborally.model;
 
 import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
+import dk.dtu.compute.se.pisd.roborally.controller.Checkpoints;
+
 import org.jetbrains.annotations.NotNull;
 
 import static dk.dtu.compute.se.pisd.roborally.model.Heading.SOUTH;
@@ -36,11 +38,14 @@ public class Player extends Subject {
 
     final public static int NO_REGISTERS = 5;
     final public static int NO_CARDS = 8;
+     
 
     final public Board board;
 
     private String name;
     private String color;
+    private int point = 0;
+    public int checkPoints = 0;
 
     private Space space;
     private Heading heading = SOUTH;
@@ -71,6 +76,8 @@ public class Player extends Subject {
         return name;
     }
 
+  
+
     public void setName(String name) {
         if (name != null && !name.equals(this.name)) {
             this.name = name;
@@ -78,6 +85,17 @@ public class Player extends Subject {
             if (space != null) {
                 space.playerChanged();
             }
+        }
+    }
+    public int getPoint() {
+        return point;
+    }
+
+    public void setPoint(int point) {
+        this.point = point;
+        notifyChange();
+        if (space != null) {
+            space.playerChanged();
         }
     }
 
@@ -133,5 +151,20 @@ public class Player extends Subject {
     public CommandCardField getCardField(int i) {
         return cards[i];
     }
+
+    public boolean gameWon() {
+        if (point >= 3) {
+            System.out.println("Player " + name + " has won the game!" );
+            return true;
+        }
+        
+        return false;
+    }
+    public void addPoint() {
+        point++;
+    }
+
+    
+
 
 }

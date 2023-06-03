@@ -51,6 +51,8 @@ public class Board extends Subject {
 
     private Player current;
 
+    public boolean gameOver = false;
+
     private Phase phase = INITIALISATION;
 
     private int step = 0;

@@ -144,6 +144,10 @@ public class SpaceView extends StackPane implements ViewObserver {
                     }
                     getChildren().add(circle);
                     updatePlayer();
+                }else if (actions instanceof Checkpoints){
+                    Checkpoints checkpoints = (Checkpoints) actions;
+                    Ellipse ellipse = new Ellipse(20, 20);
+                    ellipse.setFill(Color.BLUEVIOLET);
                 }
 
             }
