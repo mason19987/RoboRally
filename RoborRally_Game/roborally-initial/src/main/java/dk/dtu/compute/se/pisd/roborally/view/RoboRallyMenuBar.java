@@ -21,6 +21,8 @@
  */
 package dk.dtu.compute.se.pisd.roborally.view;
 
+import java.io.IOException;
+
 import dk.dtu.compute.se.pisd.roborally.controller.AppController;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -63,7 +65,14 @@ public class RoboRallyMenuBar extends MenuBar {
         controlMenu.getItems().add(stopGame);
 
         saveGame = new MenuItem("Save Game");
-        saveGame.setOnAction( e -> this.appController.saveGame());
+        saveGame.setOnAction( e -> {
+            try {
+                this.appController.saveGame();
+            } catch (IOException | InterruptedException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        });
         controlMenu.getItems().add(saveGame);
 
         loadGame = new MenuItem("Load Game");
