@@ -26,6 +26,9 @@ import dk.dtu.compute.se.pisd.roborally.controller.Checkpoints;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import static dk.dtu.compute.se.pisd.roborally.model.Heading.SOUTH;
 
 /**
@@ -34,7 +37,9 @@ import static dk.dtu.compute.se.pisd.roborally.model.Heading.SOUTH;
  * @author Ekkart Kindler, ekki@dtu.dk
  *
  */
+@JsonIgnoreProperties(value = { "board", "space" })
 public class Player extends Subject {
+    
 
     final public static int NO_REGISTERS = 5;
     final public static int NO_CARDS = 8;

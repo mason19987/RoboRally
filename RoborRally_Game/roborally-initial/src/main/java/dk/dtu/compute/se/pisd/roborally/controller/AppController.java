@@ -27,6 +27,7 @@ import dk.dtu.compute.se.pisd.roborally.RoboRally;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
+import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -34,6 +35,15 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 import org.jetbrains.annotations.NotNull;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -53,11 +63,11 @@ public class AppController implements Observer {
 
     final private RoboRally roboRally;
 
-
     private GameController gameController;
 
     /**
      * Making 2 different boards
+     * 
      * @param roboRally
      * @author Mohamad Anwar Meri, s215713@dtu.dk
      */
@@ -97,13 +107,14 @@ public class AppController implements Observer {
                 }
             }
 
-            // XXX the board should eventually be created programmatically or loaded from a file
-            //     here we just create an empty board with the required number of players.
-            //Board board = new Board(8,8);
+            // XXX the board should eventually be created programmatically or loaded from a
+            // file
+            // here we just create an empty board with the required number of players.
+            // Board board = new Board(8,8);
             /**
              * @author Mohamad Anwar Meri, s215713@dtu.dk
              */
-            //Board board = LoadBoard.LoadBoardWall();
+            // Board board = LoadBoard.LoadBoardWall();
             gameController = new GameController(board);
             int no = result1.get();
             for (int i = 0; i < no; i++) {
@@ -120,10 +131,35 @@ public class AppController implements Observer {
         }
     }
 
-    public void saveGame() {
-            // XXX needs to be implemented eventually
+    public void saveGame() throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+
+            String jsonPostData = objectMapper.writeValueAsString(new ServerModel(0, gameController, null));
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/checkpoints"))
+                    .header("Content-Type", "application/json")
+                    .POST(BodyPublishers.ofString(jsonPostData))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            int statusCode = response.statusCode();
+
+            if (statusCode == 200 || statusCode == 201) {
+                // 200 = OK
+                // 201 = Created
+            } else {
+                // Error
+            }
+
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
 
+    }
 
     public void loadGame() {
 
@@ -132,7 +168,10 @@ public class AppController implements Observer {
         if (gameController == null) {
             newGame();
         }
+        else{
+            // Set board.current to gamecontroller.currentPlayer is its ignored for JSON
         }
+    }
 
     /**
      * Stop playing the current game, giving the user the option to save
@@ -147,7 +186,12 @@ public class AppController implements Observer {
         if (gameController != null) {
 
             // here we save the game (without asking the user).
-            saveGame();
+            try {
+                saveGame();
+            } catch (IOException | InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 
             gameController = null;
             roboRally.createBoardView(null);
@@ -178,7 +222,6 @@ public class AppController implements Observer {
     public boolean isGameRunning() {
         return gameController != null;
     }
-
 
     @Override
     public void update(Subject subject) {
