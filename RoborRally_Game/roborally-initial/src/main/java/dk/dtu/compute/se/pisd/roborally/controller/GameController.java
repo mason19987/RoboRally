@@ -22,6 +22,8 @@
 package dk.dtu.compute.se.pisd.roborally.controller;
 
 import dk.dtu.compute.se.pisd.roborally.model.*;
+import javafx.scene.control.Alert;
+
 import org.jetbrains.annotations.NotNull;
 
 
@@ -493,6 +495,14 @@ public class GameController {
             this.space = space;
             this.heading = heading;
         }
+    }
+
+    public void Winner_Massage(Space space){
+        Alert winnerMassage = new Alert(Alert.AlertType.INFORMATION);
+        winnerMassage.setTitle("Game Ended");
+        winnerMassage.setHeaderText("The game has ended. " + " The winner is: " + space.getPlayer().getName());
+        winnerMassage.showAndWait();
+
     }
 
 
