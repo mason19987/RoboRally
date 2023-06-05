@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Ekkart Kindler, ekki@dtu.dk
  * @author Mohamad Anwar Meri, s215713@dtu.dk
+ * @author Shaoib Zafar Mian, s200784@dtu.dk
  * @version $Id: $Id
  */
 public class GameController {

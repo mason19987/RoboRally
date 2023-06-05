@@ -53,7 +53,7 @@ import java.util.Optional;
  *
  * @author Ekkart Kindler, ekki@dtu.dk
  * @author Mohamad Anwar Meri, s215713@dtu.dk
- *
+ * @author Shaoib Zafar Mian, s200784@dtu.dk
  */
 public class AppController implements Observer {
 
@@ -131,12 +131,7 @@ public class AppController implements Observer {
         }
     }
 
-    /**
- * ...
- *
- * @author Shoaib Zafar Mian, s200784@dtu.dk
- *
- */
+
     public void saveGame() throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
         ObjectMapper objectMapper = new ObjectMapper();
