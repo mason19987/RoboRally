@@ -35,8 +35,10 @@ import static dk.dtu.compute.se.pisd.roborally.model.Phase.INITIALISATION;
  * ...
  *
  * @author Ekkart Kindler, ekki@dtu.dk
- *
+ * @author Shoaib Zafar Mian, s200784.dk
  */
+
+ 
 @JsonIgnoreProperties(value = { "current" })
 public class Board extends Subject {
 
@@ -50,7 +52,7 @@ public class Board extends Subject {
 
     private final Space[][] spaces;
 
-    private final List<Player> players = new ArrayList<>();
+    public final List<Player> players = new ArrayList<>();
 
     private Player current;
 
