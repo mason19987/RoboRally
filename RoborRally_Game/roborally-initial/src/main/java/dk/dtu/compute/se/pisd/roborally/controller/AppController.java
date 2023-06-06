@@ -169,14 +169,19 @@ public class AppController implements Observer {
                     alert.setContentText("A save-point with that name already exists.");
                     alert.showAndWait();
                 } else {
-
-                    // Error
-
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle("Error Dialog");
+                    alert.setHeaderText("An Error Occurred");
+                    alert.setContentText("Unknown error occured, try again later.");
+                    alert.showAndWait();
                 }
 
             } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Error Dialog");
+                alert.setHeaderText("An Error Occurred");
+                alert.setContentText("Unknown error occured, try again later.");
+                alert.showAndWait();
             }
 
         }
