@@ -38,6 +38,7 @@ import javafx.scene.control.TextInputDialog;
 import org.jetbrains.annotations.NotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -190,12 +191,45 @@ public class AppController implements Observer {
 
     public void loadGame() {
 
-        // XXX needs to be implemented eventually
-        // for now, we just create a new game
-        if (gameController == null) {
-            newGame();
-        } else {
-            // Set board.current to gamecontroller.currentPlayer is its ignored for JSON
+        HttpClient client = HttpClient.newHttpClient();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/savegame"))
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response != null && response.statusCode() == 200) {
+                List<String> savePoints = objectMapper.readValue(response.body(), new TypeReference<List<String>>() {
+                });
+
+                ChoiceDialog<String> choiceDialog = new ChoiceDialog<>("", savePoints);
+                choiceDialog.setTitle("Load game");
+                choiceDialog.setHeaderText("Choose a save-point");
+                Optional<String> result = choiceDialog.showAndWait();
+
+                if (result.isPresent() && result.get() != "") {
+                    String name = result.get();
+
+                    HttpRequest request2 = HttpRequest.newBuilder()
+                            .uri(URI.create("http://localhost:8080/savegame/" + name))
+                            .header("Content-Type", "application/json")
+                            .GET()
+                            .build();
+                    HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
+                    if (response2 != null && response2.statusCode() == 200) {
+                        ServerModel savedPoint = objectMapper.readValue(response2.body(), ServerModel.class);
+                        var dd = 0;
+                    }
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
