@@ -1,32 +1,73 @@
 package dk.dtu.compute.se.pisd.roborally.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 
-import dk.dtu.compute.se.pisd.roborally.controller.GameController;
+/*
+ * @author Shaoib Zafar Mian, s200784@dtu.dk
+ */
 
 @JsonAutoDetect(fieldVisibility = Visibility.ANY)
 public class ServerModel  {
     
     private String name;
-    private GameController gameController;
-    private Space space;
+    private int boardWidth;
+    private int boardHeight;
+    private String currentPlayerName;
+    private String gameName;
+    private Phase phase;
+    private int step;
+    private List<ServerPlayerModel> players;
 
 
-    public ServerModel (String name, GameController gameController, Space space){
-        this.name = name;
-        this.gameController = gameController;
-        this.space = space;
+    public ServerModel() {
     }
 
-    public String GetName(){
+    public ServerModel(String name, int boardWidth, int boardHeight, String currentPlayerName, String gameName, Phase phase, int step,
+            List<ServerPlayerModel> players) {
+        this.name = name;
+        this.boardWidth = boardWidth;
+        this.boardHeight = boardHeight;
+        this.currentPlayerName = currentPlayerName;
+        this.gameName = gameName;
+        this.phase = phase;
+        this.step = step;
+        this.players = players;
+    }
+
+    public String GetName() {
         return this.name;
     }
-    public GameController GetGameController(){
-        return this.gameController;
+
+    public int GetBoardWidth() {
+        return this.boardWidth;
     }
-    public Space GetSpace(){
-        return this.space;
+
+    public int GetBoardHeight() {
+        return this.boardHeight;
+    }
+
+    public String GetCurrentPlayerName() {
+        return this.currentPlayerName;
+    }
+
+    public String GetGameName() {
+        return this.gameName;
+    }
+
+    public Phase GetPhase() {
+        return this.phase;
+    }
+
+    public int GetStep() {
+        return this.step;
+    }
+
+    public List<ServerPlayerModel> GetPlayers() {
+        return this.players;
     }
 
 }
+

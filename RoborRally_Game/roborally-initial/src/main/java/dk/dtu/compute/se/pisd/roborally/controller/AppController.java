@@ -26,8 +26,11 @@ import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
 import dk.dtu.compute.se.pisd.roborally.RoboRally;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
+import dk.dtu.compute.se.pisd.roborally.model.Command;
+import dk.dtu.compute.se.pisd.roborally.model.CommandCard;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
+import dk.dtu.compute.se.pisd.roborally.model.ServerPlayerModel;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -38,6 +41,7 @@ import javafx.scene.control.TextInputDialog;
 import org.jetbrains.annotations.NotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -49,6 +53,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * ...
@@ -147,8 +152,29 @@ public class AppController implements Observer {
 
             try {
 
+
+                List<ServerPlayerModel> players = List.of(
+                        gameController.board.players.stream().map(player -> new ServerPlayerModel(
+                                player.getName(),
+                                player.getColor(),
+                                player.getSpace().x,
+                                player.getSpace().y,
+                                player.getHeading(),
+                                Arrays.stream(player.GetCards()).map(card -> new CommandCard(card.getCard().command).getName()).collect(Collectors.toList())
+                                )).toArray(ServerPlayerModel[]::new));
+
+                ServerModel serverModel = new ServerModel(
+                        result.get(),
+                        gameController.board.width,
+                        gameController.board.height,
+                        gameController.board.getCurrentPlayer().getName(),
+                        result.get(),
+                        gameController.board.getPhase(),
+                        gameController.board.getStep(),
+                        players);
+
                 String jsonPostData = objectMapper
-                        .writeValueAsString(new ServerModel(result.get(), gameController, null));
+                        .writeValueAsString(serverModel);
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create("http://localhost:8080/savegame"))
                         .header("Content-Type", "application/json")
@@ -169,14 +195,19 @@ public class AppController implements Observer {
                     alert.setContentText("A save-point with that name already exists.");
                     alert.showAndWait();
                 } else {
-
-                    // Error
-
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle("Error Dialog");
+                    alert.setHeaderText("An Error Occurred");
+                    alert.setContentText("Unknown error occured, try again later.");
+                    alert.showAndWait();
                 }
 
             } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Error Dialog");
+                alert.setHeaderText("An Error Occurred");
+                alert.setContentText("Unknown error occured, try again later.");
+                alert.showAndWait();
             }
 
         }
@@ -185,12 +216,86 @@ public class AppController implements Observer {
 
     public void loadGame() {
 
-        // XXX needs to be implemented eventually
-        // for now, we just create a new game
-        if (gameController == null) {
-            newGame();
-        } else {
-            // Set board.current to gamecontroller.currentPlayer is its ignored for JSON
+        HttpClient client = HttpClient.newHttpClient();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/savegame"))
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response != null && response.statusCode() == 200) {
+                List<String> savePoints = objectMapper.readValue(response.body(), new TypeReference<List<String>>() {
+                });
+
+                ChoiceDialog<String> choiceDialog = new ChoiceDialog<>("", savePoints);
+                choiceDialog.setTitle("Load game");
+                choiceDialog.setHeaderText("Choose a save-point");
+                Optional<String> result = choiceDialog.showAndWait();
+
+                if (result.isPresent() && result.get() != "") {
+                    String name = result.get();
+
+                    HttpRequest request2 = HttpRequest.newBuilder()
+                            .uri(URI.create("http://localhost:8080/savegame/" + name))
+                            .header("Content-Type", "application/json")
+                            .GET()
+                            .build();
+                    HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
+                    if (response2 != null && response2.statusCode() == 200) {
+                        ServerModel savedPoint = objectMapper.readValue(response2.body(), ServerModel.class);
+
+                        // Overwrite
+                        Board board = new Board(savedPoint.GetBoardWidth(), savedPoint.GetBoardHeight(),
+                                savedPoint.GetName());
+                        board.setPhase(savedPoint.GetPhase());
+                        board.setStep(savedPoint.GetStep());
+
+                        // Convert ServerPlayerModel list to Player list
+                        List<Player> players = savedPoint.GetPlayers().stream().map(player -> new Player(
+                                board,
+                                player.GetColor(),
+                                player.GetName())).collect(Collectors.toList());
+
+                        for (int i = 0; i < players.size(); i++) {
+                            Player player = players.get(i);
+                            ServerPlayerModel serverPlayerModel = savedPoint.GetPlayers().get(i);
+                            player.setSpace(
+                                    board.getSpace(serverPlayerModel.GetPositionX(), serverPlayerModel.GetPositionY()));
+                            player.setHeading(serverPlayerModel.GetHeading());
+
+                            List<String> cardCommands = serverPlayerModel.GetCommands();
+                            List<Command> commands = cardCommands.stream()
+                                    .map(commandString -> Command.fromString(commandString))
+                                    .collect(Collectors.toList());
+
+                            List<CommandCard> commandCards = commands.stream()
+                                    .map(command -> new CommandCard(command)).collect(Collectors.toList());
+
+                            player.SetCards(commandCards);
+                        }
+                        board.setPlayers(players);
+
+                        // set current player using name from save-point
+                        String currentPlayerName = savedPoint.GetCurrentPlayerName();
+                        Player currentPlayer = board.players.stream()
+                                .filter(player -> player.getName().equals(currentPlayerName)).findFirst().orElse(null);
+                        board.setCurrentPlayer(currentPlayer);
+
+                        // Update gameController
+                        this.gameController = new GameController(board);
+                        roboRally.createBoardView(gameController);
+
+                    }
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
