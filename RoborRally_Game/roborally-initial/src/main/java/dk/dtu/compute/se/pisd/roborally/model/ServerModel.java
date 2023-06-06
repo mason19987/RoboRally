@@ -8,19 +8,19 @@ import dk.dtu.compute.se.pisd.roborally.controller.GameController;
 @JsonAutoDetect(fieldVisibility = Visibility.ANY)
 public class ServerModel  {
     
-    private int orderNo;
+    private String name;
     private GameController gameController;
     private Space space;
 
 
-    public ServerModel (int orderNo, GameController gameController, Space space){
-        this.orderNo = orderNo;
+    public ServerModel (String name, GameController gameController, Space space){
+        this.name = name;
         this.gameController = gameController;
         this.space = space;
     }
 
-    public int GetOrderNo(){
-        return this.orderNo;
+    public String GetName(){
+        return this.name;
     }
     public GameController GetGameController(){
         return this.gameController;
