@@ -33,6 +33,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.TextInputDialog;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -131,33 +133,52 @@ public class AppController implements Observer {
         }
     }
 
-
     public void saveGame() throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newHttpClient();
-        ObjectMapper objectMapper = new ObjectMapper();
 
-        try {
+        TextInputDialog saveGameDialog = new TextInputDialog();
+        saveGameDialog.setTitle("Save Game");
+        saveGameDialog.setHeaderText("Provide save-point name:");
+        Optional<String> result = saveGameDialog.showAndWait();
 
-            String jsonPostData = objectMapper.writeValueAsString(new ServerModel(0, gameController, null));
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/checkpoints"))
-                    .header("Content-Type", "application/json")
-                    .POST(BodyPublishers.ofString(jsonPostData))
-                    .build();
+        if (result.isPresent() && result.get() != "") {
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            int statusCode = response.statusCode();
+            HttpClient client = HttpClient.newHttpClient();
+            ObjectMapper objectMapper = new ObjectMapper();
 
-            if (statusCode == 200 || statusCode == 201) {
-                // 200 = OK
-                // 201 = Created
-            } else {
-                // Error
+            try {
+
+                String jsonPostData = objectMapper
+                        .writeValueAsString(new ServerModel(result.get(), gameController, null));
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("http://localhost:8080/savegame"))
+                        .header("Content-Type", "application/json")
+                        .POST(BodyPublishers.ofString(jsonPostData))
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                int statusCode = response.statusCode();
+
+                if (statusCode == 200 || statusCode == 201) {
+                    // 200 = OK
+                    // 201 = Created
+                } else if (statusCode == 409) {
+                    // 409 = Conflict, a file with given name already exists
+                    Alert alert = new Alert(AlertType.ERROR);
+                    alert.setTitle("Error Dialog");
+                    alert.setHeaderText("An Error Occurred");
+                    alert.setContentText("A save-point with that name already exists.");
+                    alert.showAndWait();
+                } else {
+
+                    // Error
+
+                }
+
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
 
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
 
     }
@@ -168,8 +189,7 @@ public class AppController implements Observer {
         // for now, we just create a new game
         if (gameController == null) {
             newGame();
-        }
-        else{
+        } else {
             // Set board.current to gamecontroller.currentPlayer is its ignored for JSON
         }
     }
