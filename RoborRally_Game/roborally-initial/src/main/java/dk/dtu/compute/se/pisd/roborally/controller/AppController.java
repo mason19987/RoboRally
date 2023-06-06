@@ -26,6 +26,8 @@ import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
 import dk.dtu.compute.se.pisd.roborally.RoboRally;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
+import dk.dtu.compute.se.pisd.roborally.model.Command;
+import dk.dtu.compute.se.pisd.roborally.model.CommandCard;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
 import dk.dtu.compute.se.pisd.roborally.model.ServerPlayerModel;
@@ -51,6 +53,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * ...
@@ -149,24 +152,26 @@ public class AppController implements Observer {
 
             try {
 
+
                 List<ServerPlayerModel> players = List.of(
-                    gameController.board.players.stream().map(player -> new ServerPlayerModel(
-                        player.getName(), 
-                        player.getColor(), 
-                        player.getSpace().x, 
-                        player.getSpace().y, 
-                        player.getHeading(), 
-                        player.GetCards())).toArray(ServerPlayerModel[]::new)
-                );
+                        gameController.board.players.stream().map(player -> new ServerPlayerModel(
+                                player.getName(),
+                                player.getColor(),
+                                player.getSpace().x,
+                                player.getSpace().y,
+                                player.getHeading(),
+                                Arrays.stream(player.GetCards()).map(card -> new CommandCard(card.getCard().command).getName()).collect(Collectors.toList())
+                                )).toArray(ServerPlayerModel[]::new));
 
                 ServerModel serverModel = new ServerModel(
-                    result.get(),
-                    gameController.board.getCurrentPlayer().getName(),
-                    result.get(),
-                    gameController.board.getPhase(),
-                    gameController.board.getStep(),
-                    players
-                );
+                        result.get(),
+                        gameController.board.width,
+                        gameController.board.height,
+                        gameController.board.getCurrentPlayer().getName(),
+                        result.get(),
+                        gameController.board.getPhase(),
+                        gameController.board.getStep(),
+                        players);
 
                 String jsonPostData = objectMapper
                         .writeValueAsString(serverModel);
@@ -243,7 +248,48 @@ public class AppController implements Observer {
                     HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
                     if (response2 != null && response2.statusCode() == 200) {
                         ServerModel savedPoint = objectMapper.readValue(response2.body(), ServerModel.class);
-                        var dd = 0;
+
+                        // Overwrite
+                        Board board = new Board(savedPoint.GetBoardWidth(), savedPoint.GetBoardHeight(),
+                                savedPoint.GetName());
+                        board.setPhase(savedPoint.GetPhase());
+                        board.setStep(savedPoint.GetStep());
+
+                        // Convert ServerPlayerModel list to Player list
+                        List<Player> players = savedPoint.GetPlayers().stream().map(player -> new Player(
+                                board,
+                                player.GetColor(),
+                                player.GetName())).collect(Collectors.toList());
+
+                        for (int i = 0; i < players.size(); i++) {
+                            Player player = players.get(i);
+                            ServerPlayerModel serverPlayerModel = savedPoint.GetPlayers().get(i);
+                            player.setSpace(
+                                    board.getSpace(serverPlayerModel.GetPositionX(), serverPlayerModel.GetPositionY()));
+                            player.setHeading(serverPlayerModel.GetHeading());
+
+                            List<String> cardCommands = serverPlayerModel.GetCommands();
+                            List<Command> commands = cardCommands.stream()
+                                    .map(commandString -> Command.fromString(commandString))
+                                    .collect(Collectors.toList());
+
+                            List<CommandCard> commandCards = commands.stream()
+                                    .map(command -> new CommandCard(command)).collect(Collectors.toList());
+
+                            player.SetCards(commandCards);
+                        }
+                        board.setPlayers(players);
+
+                        // set current player using name from save-point
+                        String currentPlayerName = savedPoint.GetCurrentPlayerName();
+                        Player currentPlayer = board.players.stream()
+                                .filter(player -> player.getName().equals(currentPlayerName)).findFirst().orElse(null);
+                        board.setCurrentPlayer(currentPlayer);
+
+                        // Update gameController
+                        this.gameController = new GameController(board);
+                        roboRally.createBoardView(gameController);
+
                     }
                 }
             }

@@ -31,6 +31,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import static dk.dtu.compute.se.pisd.roborally.model.Heading.SOUTH;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * ...
  *
@@ -39,13 +42,11 @@ import static dk.dtu.compute.se.pisd.roborally.model.Heading.SOUTH;
  */
 @JsonIgnoreProperties(value = { "board", "space" })
 public class Player extends Subject {
-    
 
-    final public static int NO_REGISTERS = 5;
-    final public static int NO_CARDS = 8;
-     
+    public static int NO_REGISTERS = 5;
+    public static int NO_CARDS = 8;
 
-    final public Board board;
+    public Board board;
 
     private String name;
     private String color;
@@ -55,9 +56,11 @@ public class Player extends Subject {
     private Space space;
     private Heading heading = SOUTH;
 
-    private final CommandCardField[] program;
-    private final CommandCardField[] cards;
+    private CommandCardField[] program;
+    private CommandCardField[] cards;
 
+    public Player() {
+    }
 
     public Player(@NotNull Board board, String color, @NotNull String name) {
         this.board = board;
@@ -81,8 +84,6 @@ public class Player extends Subject {
         return name;
     }
 
-  
-
     public void setName(String name) {
         if (name != null && !name.equals(this.name)) {
             this.name = name;
@@ -92,6 +93,7 @@ public class Player extends Subject {
             }
         }
     }
+
     public int getPoint() {
         return point;
     }
@@ -159,19 +161,24 @@ public class Player extends Subject {
 
     public boolean gameWon() {
         if (point >= 3) {
-            System.out.println("Player " + name + " has won the game!" );
+            System.out.println("Player " + name + " has won the game!");
             return true;
         }
-        
+
         return false;
     }
+
     public void addPoint() {
         point++;
     }
 
-    public CommandCardField[] GetCards(){
+    public CommandCardField[] GetCards() {
         return cards;
     }
 
-
+    public void SetCards(List<CommandCard> cards) {
+        for (int i = 0; i < cards.size(); i++) {
+            this.cards[i].setCard(cards.get(i));
+        }
+    }
 }

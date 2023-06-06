@@ -1,8 +1,9 @@
 package dk.dtu.compute.se.pisd.roborally.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-
 
 /*
  * @author Shaoib Zafar Mian, s200784@dtu.dk
@@ -18,19 +19,19 @@ public class ServerPlayerModel {
 
     private Heading heading;
 
-    private CommandCardField[] cards;
+    private List<String> commands;
 
     public ServerPlayerModel() {
     }
 
     public ServerPlayerModel(String name, String color, int positionX, int positionY, Heading heading,
-            CommandCardField[] cards) {
+            List<String> commands) {
         this.name = name;
         this.color = color;
         this.positionX = positionX;
         this.positionY = positionY;
         this.heading = heading;
-        this.cards = cards;
+        this.commands = commands;
     }
 
     public String GetName() {
@@ -53,7 +54,7 @@ public class ServerPlayerModel {
         return this.heading;
     }
 
-    public CommandCardField[] GetCards() {
-        return this.cards;
+    public List<String> GetCommands() {
+        return this.commands;
     }
 }

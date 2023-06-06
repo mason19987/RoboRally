@@ -74,5 +74,15 @@ public enum Command {
         return options;
     }
 
+    public static Command fromString(String commandString) {
+        for (Command command : Command.values()) {
+            if (command.displayName.equalsIgnoreCase(commandString)) {
+                return command;
+            }
+        }
+        throw new IllegalArgumentException("No enum found with displayName: [" + commandString + "]");
+    }
+    
+
 }
 
