@@ -28,6 +28,7 @@ import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
+import dk.dtu.compute.se.pisd.roborally.model.ServerPlayerModel;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -148,8 +149,27 @@ public class AppController implements Observer {
 
             try {
 
+                List<ServerPlayerModel> players = List.of(
+                    gameController.board.players.stream().map(player -> new ServerPlayerModel(
+                        player.getName(), 
+                        player.getColor(), 
+                        player.getSpace().x, 
+                        player.getSpace().y, 
+                        player.getHeading(), 
+                        player.GetCards())).toArray(ServerPlayerModel[]::new)
+                );
+
+                ServerModel serverModel = new ServerModel(
+                    result.get(),
+                    gameController.board.getCurrentPlayer().getName(),
+                    result.get(),
+                    gameController.board.getPhase(),
+                    gameController.board.getStep(),
+                    players
+                );
+
                 String jsonPostData = objectMapper
-                        .writeValueAsString(new ServerModel(result.get(), gameController, null));
+                        .writeValueAsString(serverModel);
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create("http://localhost:8080/savegame"))
                         .header("Content-Type", "application/json")

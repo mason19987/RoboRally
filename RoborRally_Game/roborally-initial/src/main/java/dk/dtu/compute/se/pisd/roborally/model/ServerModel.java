@@ -1,32 +1,57 @@
 package dk.dtu.compute.se.pisd.roborally.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-
-import dk.dtu.compute.se.pisd.roborally.controller.GameController;
 
 @JsonAutoDetect(fieldVisibility = Visibility.ANY)
 public class ServerModel  {
     
     private String name;
-    private GameController gameController;
-    private Space space;
+    private String currentPlayerName;
+    private String gameName;
+    private Phase phase;
+    private int step;
+    private List<ServerPlayerModel> players;
 
 
-    public ServerModel (String name, GameController gameController, Space space){
-        this.name = name;
-        this.gameController = gameController;
-        this.space = space;
+    public ServerModel() {
     }
 
-    public String GetName(){
+    public ServerModel(String name, String currentPlayerName, String gameName, Phase phase, int step,
+            List<ServerPlayerModel> players) {
+        this.name = name;
+        this.currentPlayerName = currentPlayerName;
+        this.gameName = gameName;
+        this.phase = phase;
+        this.step = step;
+        this.players = players;
+    }
+
+    public String GetName() {
         return this.name;
     }
-    public GameController GetGameController(){
-        return this.gameController;
+
+    public String GetCurrentPlayerName() {
+        return this.currentPlayerName;
     }
-    public Space GetSpace(){
-        return this.space;
+
+    public String GetGameName() {
+        return this.gameName;
+    }
+
+    public Phase GetPhase() {
+        return this.phase;
+    }
+
+    public int GetStep() {
+        return this.step;
+    }
+
+    public List<ServerPlayerModel> GetPlayers() {
+        return this.players;
     }
 
 }
+

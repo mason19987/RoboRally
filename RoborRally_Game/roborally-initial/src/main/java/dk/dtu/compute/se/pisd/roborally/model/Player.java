@@ -169,7 +169,9 @@ public class Player extends Subject {
         point++;
     }
 
-    
+    public CommandCardField[] GetCards(){
+        return cards;
+    }
 
 
 }
