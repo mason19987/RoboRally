@@ -3,6 +3,11 @@ package dk.dtu.compute.se.pisd.roborally.model;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 
+
+/*
+ * @author Shaoib Zafar Mian, s200784@dtu.dk
+ */
+
 @JsonAutoDetect(fieldVisibility = Visibility.ANY)
 public class ServerPlayerModel {
     private String name; // Use as ID

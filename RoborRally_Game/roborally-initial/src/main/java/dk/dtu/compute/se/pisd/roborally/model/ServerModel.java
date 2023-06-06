@@ -5,6 +5,10 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 
+/*
+ * @author Shaoib Zafar Mian, s200784@dtu.dk
+ */
+
 @JsonAutoDetect(fieldVisibility = Visibility.ANY)
 public class ServerModel  {
     
