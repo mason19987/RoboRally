@@ -25,12 +25,15 @@ import dk.dtu.compute.se.pisd.designpatterns.observer.Observer;
 import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
 import dk.dtu.compute.se.pisd.roborally.RoboRally;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
+import dk.dtu.compute.se.pisd.roborally.fileaccess.model.BoardTemplate;
+import dk.dtu.compute.se.pisd.roborally.fileaccess.model.SpaceTemplate;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.model.Command;
 import dk.dtu.compute.se.pisd.roborally.model.CommandCard;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
 import dk.dtu.compute.se.pisd.roborally.model.ServerPlayerModel;
+import dk.dtu.compute.se.pisd.roborally.model.Space;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -152,7 +155,6 @@ public class AppController implements Observer {
 
             try {
 
-
                 List<ServerPlayerModel> players = List.of(
                         gameController.board.players.stream().map(player -> new ServerPlayerModel(
                                 player.getName(),
@@ -160,13 +162,14 @@ public class AppController implements Observer {
                                 player.getSpace().x,
                                 player.getSpace().y,
                                 player.getHeading(),
-                                Arrays.stream(player.GetCards()).map(card -> new CommandCard(card.getCard().command).getName()).collect(Collectors.toList())
-                                )).toArray(ServerPlayerModel[]::new));
+                                Arrays.stream(player.GetCards())
+                                        .map(card -> new CommandCard(card.getCard().command).getName())
+                                        .collect(Collectors.toList())))
+                                .toArray(ServerPlayerModel[]::new));
 
                 ServerModel serverModel = new ServerModel(
                         result.get(),
-                        gameController.board.width,
-                        gameController.board.height,
+                        gameController.board.boardName,
                         gameController.board.getCurrentPlayer().getName(),
                         result.get(),
                         gameController.board.getPhase(),
@@ -215,7 +218,6 @@ public class AppController implements Observer {
     }
 
     public void loadGame() {
-
         HttpClient client = HttpClient.newHttpClient();
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -249,9 +251,16 @@ public class AppController implements Observer {
                     if (response2 != null && response2.statusCode() == 200) {
                         ServerModel savedPoint = objectMapper.readValue(response2.body(), ServerModel.class);
 
-                        // Overwrite
-                        Board board = new Board(savedPoint.GetBoardWidth(), savedPoint.GetBoardHeight(),
+                        BoardTemplate template = LoadBoard.GetBoardTemplate(savedPoint.GetBoardName());
+                        Board board = new Board(template.width, template.height,
                                 savedPoint.GetName());
+                        for (SpaceTemplate spaceTemplate : template.spaces) {
+                            Space space = board.getSpace(spaceTemplate.x, spaceTemplate.y);
+                            if (space != null) {
+                                space.getActions().addAll(spaceTemplate.actions);
+                                space.getWall().addAll(spaceTemplate.walls);
+                            }
+                        }
                         board.setPhase(savedPoint.GetPhase());
                         board.setStep(savedPoint.GetStep());
 
