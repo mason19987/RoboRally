@@ -13,8 +13,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 public class ServerModel  {
     
     private String name;
-    private int boardWidth;
-    private int boardHeight;
+    private String boardName;
     private String currentPlayerName;
     private String gameName;
     private Phase phase;
@@ -25,11 +24,10 @@ public class ServerModel  {
     public ServerModel() {
     }
 
-    public ServerModel(String name, int boardWidth, int boardHeight, String currentPlayerName, String gameName, Phase phase, int step,
+    public ServerModel(String name, String boardName, String currentPlayerName, String gameName, Phase phase, int step,
             List<ServerPlayerModel> players) {
         this.name = name;
-        this.boardWidth = boardWidth;
-        this.boardHeight = boardHeight;
+        this.boardName = boardName;
         this.currentPlayerName = currentPlayerName;
         this.gameName = gameName;
         this.phase = phase;
@@ -41,12 +39,8 @@ public class ServerModel  {
         return this.name;
     }
 
-    public int GetBoardWidth() {
-        return this.boardWidth;
-    }
-
-    public int GetBoardHeight() {
-        return this.boardHeight;
+    public String GetBoardName() {
+        return this.boardName;
     }
 
     public String GetCurrentPlayerName() {
