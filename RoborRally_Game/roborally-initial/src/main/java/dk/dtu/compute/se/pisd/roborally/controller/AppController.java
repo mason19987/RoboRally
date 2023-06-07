@@ -24,12 +24,14 @@ package dk.dtu.compute.se.pisd.roborally.controller;
 import dk.dtu.compute.se.pisd.designpatterns.observer.Observer;
 import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
 import dk.dtu.compute.se.pisd.roborally.RoboRally;
+import dk.dtu.compute.se.pisd.roborally.clients.MultiplayerClient;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.BoardTemplate;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.SpaceTemplate;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.model.Command;
 import dk.dtu.compute.se.pisd.roborally.model.CommandCard;
+import dk.dtu.compute.se.pisd.roborally.model.MultiplayerPlayerModel;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
 import dk.dtu.compute.se.pisd.roborally.model.ServerPlayerModel;
@@ -43,7 +45,6 @@ import javafx.scene.control.TextInputDialog;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -74,6 +75,8 @@ public class AppController implements Observer {
     final private RoboRally roboRally;
 
     private GameController gameController;
+    private String serverIP = "http://localhost:8080";
+    private MultiplayerClient multiplayerClient = new MultiplayerClient(serverIP);
 
     /**
      * Making 2 different boards
@@ -87,6 +90,9 @@ public class AppController implements Observer {
     }
 
     public void newGame() {
+
+        multiplayerClient.join(new MultiplayerPlayerModel(0, serverIP, serverIP));
+
         if (gameController != null) {
             if (!stopGame()) {
                 return;
