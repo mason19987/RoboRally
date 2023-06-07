@@ -91,7 +91,7 @@ public class AppController implements Observer {
 
     public void newGame() {
 
-        multiplayerClient.join(new MultiplayerPlayerModel(0, serverIP, serverIP));
+        // multiplayerClient.join(new MultiplayerPlayerModel(0, serverIP, serverIP));
 
         if (gameController != null) {
             if (!stopGame()) {
