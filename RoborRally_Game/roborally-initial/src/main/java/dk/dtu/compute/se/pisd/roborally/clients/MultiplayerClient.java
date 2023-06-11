@@ -16,6 +16,24 @@ public class MultiplayerClient {
         this.webClient = WebClient.create(ipAddress);
     }
 
+    public void setTotalPlayers(int totalPlayers) {
+        webClient.post()
+                .uri("/multiplayer/setTotalPlayers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(totalPlayers), Integer.class)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
+
+    public int getTotalPlayers() {
+        return webClient.get()
+                .uri("/multiplayer/totalPlayers")
+                .retrieve()
+                .bodyToMono(Integer.class)
+                .block();
+    }
+
     public MultiplayerPlayerModel join(MultiplayerPlayerModel player) {
         return webClient.post()
                 .uri("/multiplayer/join")

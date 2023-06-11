@@ -28,6 +28,9 @@ import dk.dtu.compute.se.pisd.roborally.clients.MultiplayerClient;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.BoardTemplate;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.SpaceTemplate;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerJoinOrStartDialog;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerStartDialog;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerWaitingDialog;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.model.Command;
 import dk.dtu.compute.se.pisd.roborally.model.CommandCard;
@@ -58,6 +61,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * ...
@@ -76,7 +81,6 @@ public class AppController implements Observer {
 
     private GameController gameController;
     private String serverIP = "http://localhost:8080";
-    private MultiplayerClient multiplayerClient = new MultiplayerClient(serverIP);
 
     /**
      * Making 2 different boards
@@ -99,50 +103,88 @@ public class AppController implements Observer {
             }
         }
 
-        ChoiceDialog<String> choiceDialog = new ChoiceDialog<>(BOARD_OPTIONS.get(0), BOARD_OPTIONS);
-        choiceDialog.setTitle("Board");
-        choiceDialog.setHeaderText("Choose please a board");
-        Optional<String> result = choiceDialog.showAndWait();
+        String hostname = "Unknown";
+        String ipAddress = "Unknown";
 
-        Board board = null;
-        if (result.isPresent()) {
-            board = LoadBoard.loadBoard(result.get());
+        try {
+            InetAddress addr;
+            addr = InetAddress.getLocalHost();
+            hostname = addr.getHostName();
+            ipAddress = addr.getHostAddress();
+        } catch (UnknownHostException ex) {
+            System.out.println("Hostname can not be resolved");
         }
 
-        ChoiceDialog<Integer> dialog = new ChoiceDialog<>(PLAYER_NUMBER_OPTIONS.get(0), PLAYER_NUMBER_OPTIONS);
-        dialog.setTitle("Player number");
-        dialog.setHeaderText("Select number of players");
-        Optional<Integer> result1 = dialog.showAndWait();
+        MultiplayerClient multiplayerClient = new MultiplayerClient(serverIP);
+        ServerJoinOrStartDialog serverJoin = new ServerJoinOrStartDialog();
+        Optional<ServerJoinOrStartDialog.DialogOption> serverJoinResult = serverJoin.displayStartOrJoinDialog();
 
-        if (result1.isPresent()) {
+        boolean isServer = false;
+        int playerNumber = 0;
+
+        if (serverJoinResult.isPresent()) {
+            switch (serverJoinResult.get()) {
+                case START:
+                    isServer = true;
+                    ServerStartDialog serverStart = new ServerStartDialog();
+                    Optional<ServerStartDialog.DialogOption> serverStartResult = serverStart.displayStartDialog();
+                    if (serverStartResult.isPresent()) {
+                        playerNumber = serverStartResult.get().getNumberOfPlayers();
+
+                        multiplayerClient.setTotalPlayers(playerNumber);
+                        multiplayerClient.join(new MultiplayerPlayerModel(0, hostname, ipAddress));
+                        ServerWaitingDialog waitingDialog = new ServerWaitingDialog();
+                        waitingDialog.open("Waiting for players to join, total players: "
+                        + multiplayerClient.getTotalPlayers() + " / " + playerNumber + "");
+                        var actualPlayerCount = multiplayerClient.getPlayers().size();
+                        while (playerNumber != actualPlayerCount) {
+                            actualPlayerCount = multiplayerClient.getPlayers().size();
+                            System.out.println("Waiting for players to join");
+                            try {
+                                waitingDialog.setMessage("Waiting for players to join, total players: "
+                                        + multiplayerClient.getTotalPlayers() + " / " + playerNumber + "");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        waitingDialog.close();
+                        // multiplayerClient.start();
+                    }
+                    break;
+                case JOIN:
+                    isServer = false;
+
+                    break;
+            }
+        }
+
+        Board board = null;
+
+        if (isServer) {
+            ChoiceDialog<String> choiceDialog = new ChoiceDialog<>(BOARD_OPTIONS.get(0), BOARD_OPTIONS);
+            choiceDialog.setTitle("Board");
+            choiceDialog.setHeaderText("Choose please a board");
+            Optional<String> resultBoardSelection = choiceDialog.showAndWait();
+            if (resultBoardSelection.isPresent()) {
+                board = LoadBoard.loadBoard(resultBoardSelection.get());
+            }
+
             if (gameController != null) {
-                // The UI should not allow this, but in case this happens anyway.
-                // give the user the option to save the game or abort this operation!
                 if (!stopGame()) {
                     return;
                 }
             }
 
-            // XXX the board should eventually be created programmatically or loaded from a
-            // file
-            // here we just create an empty board with the required number of players.
-            // Board board = new Board(8,8);
-            /**
-             * @author Mohamad Anwar Meri, s215713@dtu.dk
-             */
-            // Board board = LoadBoard.LoadBoardWall();
             gameController = new GameController(board);
-            int no = result1.get();
-            for (int i = 0; i < no; i++) {
-                Player player = new Player(board, PLAYER_COLORS.get(i), "Player " + (i + 1));
+
+            var serverPlayers = multiplayerClient.getPlayers();
+            for (int i = 0; i < serverPlayers.size(); i++) {
+                Player player = new Player(board, PLAYER_COLORS.get(i), serverPlayers.get(i).GetName());
                 board.addPlayer(player);
                 player.setSpace(board.getSpace(i % board.width, i));
             }
 
-            // XXX: V2
-            // board.setCurrentPlayer(board.getPlayer(0));
             gameController.startProgrammingPhase();
-
             roboRally.createBoardView(gameController);
         }
     }
