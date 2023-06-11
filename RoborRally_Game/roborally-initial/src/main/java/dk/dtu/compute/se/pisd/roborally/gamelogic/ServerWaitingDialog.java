@@ -5,7 +5,7 @@ import javafx.scene.control.*;
 
 public class ServerWaitingDialog {
     private Dialog<ButtonType> dialog;
-    private Label messageLabel;
+    private TextArea messageTextArea;
     private Button okButton; // This is the OK button
 
     public ServerWaitingDialog() {
@@ -16,17 +16,19 @@ public class ServerWaitingDialog {
         this.okButton = (Button) this.dialog.getDialogPane().lookupButton(ButtonType.OK);
         this.okButton.setDisable(true);
 
-        this.messageLabel = new Label();
-        this.dialog.getDialogPane().setContent(this.messageLabel);
+        this.messageTextArea = new TextArea();
+        this.messageTextArea.setEditable(false); // disable editing
+        this.dialog.getDialogPane().setContent(this.messageTextArea);
     }
 
     public void open(String message) {
+        Platform.runLater(() -> this.messageTextArea.setText(message));
         if (!this.dialog.isShowing()) {
             this.dialog.showAndWait();
             if (this.dialog.getResult() == ButtonType.OK) {
                 this.close();
             }
-            this.messageLabel.setText(message);
+            
         }
     }
 
@@ -37,7 +39,7 @@ public class ServerWaitingDialog {
     }
 
     public void setMessage(String message) {
-        Platform.runLater(() -> this.messageLabel.setText(message));
+        Platform.runLater(() -> this.messageTextArea.setText(message));
     }
 
     // Method to enable the OK button

@@ -40,6 +40,7 @@ import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
 import dk.dtu.compute.se.pisd.roborally.model.ServerPlayerModel;
 import dk.dtu.compute.se.pisd.roborally.model.Space;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -128,28 +129,49 @@ public class AppController implements Observer {
                     isServer = true;
                     ServerStartDialog serverStart = new ServerStartDialog();
                     Optional<ServerStartDialog.DialogOption> serverStartResult = serverStart.displayStartDialog();
+
                     if (serverStartResult.isPresent()) {
                         playerNumber = serverStartResult.get().getNumberOfPlayers();
 
                         multiplayerClient.setTotalPlayers(playerNumber);
                         multiplayerClient.join(new MultiplayerPlayerModel(0, hostname, ipAddress));
                         ServerWaitingDialog waitingDialog = new ServerWaitingDialog();
-                        waitingDialog.open("Waiting for players to join, total players: "
-                        + multiplayerClient.getTotalPlayers() + " / " + playerNumber + "");
-                        var actualPlayerCount = multiplayerClient.getPlayers().size();
-                        while (playerNumber != actualPlayerCount) {
-                            actualPlayerCount = multiplayerClient.getPlayers().size();
-                            System.out.println("Waiting for players to join");
-                            try {
-                                waitingDialog.setMessage("Waiting for players to join, total players: "
-                                        + multiplayerClient.getTotalPlayers() + " / " + playerNumber + "");
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                        
+
+                        Task<Void> waitingTask = new Task<Void>() {
+                            @Override
+                            protected Void call() throws Exception {
+                                var playerNumber = serverStartResult.get().getNumberOfPlayers();
+                                var actualPlayerCount = multiplayerClient.getPlayers().size();
+                                while (playerNumber != actualPlayerCount) {
+                                    actualPlayerCount = multiplayerClient.getPlayers().size();
+                                    System.out.println("Waiting for players to join");
+                                    updateMessage("Waiting for players to join, total players: "
+                                            + actualPlayerCount + " / " + playerNumber);
+                                            
+                                }
+                                return null;
                             }
-                        }
-                        waitingDialog.close();
-                        // multiplayerClient.start();
+
+                            @Override
+                            protected void updateMessage(String message) {
+                                super.updateMessage(message);
+                                Platform.runLater(() -> waitingDialog.setMessage(message));
+                            }
+
+                            @Override
+                            protected void succeeded() {
+                                super.succeeded();
+                                Platform.runLater(waitingDialog::close);
+                            }
+                        };
+
+                        new Thread(waitingTask).start();
+
+                        waitingDialog.open("Waiting for players to join, total players: "
+                                + multiplayerClient.getPlayers().size() + " / " + playerNumber + "");
                     }
+
                     break;
                 case JOIN:
                     isServer = false;
