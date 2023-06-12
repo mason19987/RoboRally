@@ -28,7 +28,10 @@ import dk.dtu.compute.se.pisd.roborally.clients.MultiplayerClient;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.BoardTemplate;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.SpaceTemplate;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerGameState;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerJoinDialog;
 import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerJoinOrStartDialog;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerMultiplayerLogic;
 import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerStartDialog;
 import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerWaitingDialog;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
@@ -78,10 +81,12 @@ public class AppController implements Observer {
     final private List<String> PLAYER_COLORS = Arrays.asList("red", "green", "blue", "orange", "grey", "magenta");
     final private List<String> BOARD_OPTIONS = Arrays.asList("FirstBoard", "SecondBoard");
 
-    final private RoboRally roboRally;
+    public static RoboRally roboRally;
 
-    private GameController gameController;
-    private String serverIP = "http://localhost:8080";
+    public static GameController gameController;
+    public static String serverIP = "http://localhost:8080";
+    public static ServerMultiplayerLogic smpl;
+    public static int playerId = 0;
 
     /**
      * Making 2 different boards
@@ -129,53 +134,38 @@ public class AppController implements Observer {
                     isServer = true;
                     ServerStartDialog serverStart = new ServerStartDialog();
                     Optional<ServerStartDialog.DialogOption> serverStartResult = serverStart.displayStartDialog();
-
                     if (serverStartResult.isPresent()) {
                         playerNumber = serverStartResult.get().getNumberOfPlayers();
 
                         multiplayerClient.setTotalPlayers(playerNumber);
-                        multiplayerClient.join(new MultiplayerPlayerModel(0, hostname, ipAddress));
-                        ServerWaitingDialog waitingDialog = new ServerWaitingDialog();
-                        
+                        multiplayerClient
+                                .join(new MultiplayerPlayerModel(playerId, playerId + "-" + hostname, ipAddress));
 
-                        Task<Void> waitingTask = new Task<Void>() {
-                            @Override
-                            protected Void call() throws Exception {
-                                var playerNumber = serverStartResult.get().getNumberOfPlayers();
-                                var actualPlayerCount = multiplayerClient.getPlayers().size();
-                                while (playerNumber != actualPlayerCount) {
-                                    actualPlayerCount = multiplayerClient.getPlayers().size();
-                                    System.out.println("Waiting for players to join");
-                                    updateMessage("Waiting for players to join, total players: "
-                                            + actualPlayerCount + " / " + playerNumber);
-                                            
-                                }
-                                return null;
-                            }
-
-                            @Override
-                            protected void updateMessage(String message) {
-                                super.updateMessage(message);
-                                Platform.runLater(() -> waitingDialog.setMessage(message));
-                            }
-
-                            @Override
-                            protected void succeeded() {
-                                super.succeeded();
-                                Platform.runLater(waitingDialog::close);
-                            }
-                        };
-
-                        new Thread(waitingTask).start();
-
+                        ServerWaitingDialog waitingDialog = OptionStartWaitForPlayers(serverStartResult);
                         waitingDialog.open("Waiting for players to join, total players: "
                                 + multiplayerClient.getPlayers().size() + " / " + playerNumber + "");
                     }
-
                     break;
                 case JOIN:
                     isServer = false;
+                    ServerJoinDialog serverJoinDialog = new ServerJoinDialog();
+                    Optional<ButtonType> joinResult = serverJoinDialog.showAndWait();
+                    if (joinResult.isPresent() && joinResult.get() == ButtonType.OK) {
 
+                        serverIP = serverJoinDialog.getIpAddress();
+                        multiplayerClient = new MultiplayerClient(serverIP);
+                        var serverPlayers = multiplayerClient.getPlayers();
+                        playerId = serverPlayers.size();
+                        multiplayerClient.join(new MultiplayerPlayerModel(playerId, playerId + "-" + hostname, ipAddress));
+
+                        ServerWaitingDialog waitingDialog = OptionJoinWaitForPlayers();
+                        waitingDialog.open("Waiting for players to join, total players: "
+                                + multiplayerClient.getPlayers().size() + " / " + playerNumber + "");
+
+                        // Now you should connect to the server with the new IP address
+                        // and wait for the game to start. This involves a server-side implementation.
+                        // Once the game starts, you should get the board state from the server.
+                    }
                     break;
             }
         }
@@ -208,7 +198,85 @@ public class AppController implements Observer {
 
             gameController.startProgrammingPhase();
             roboRally.createBoardView(gameController);
+            multiplayerClient.start();
         }
+
+        smpl = new ServerMultiplayerLogic(
+                ipAddress,
+                serverIP,
+                playerId,
+                roboRally,
+                gameController,
+                isServer);
+        smpl.Start();
+    }
+
+    private ServerWaitingDialog OptionStartWaitForPlayers(Optional<ServerStartDialog.DialogOption> serverStartResult) {
+        ServerWaitingDialog waitingDialog = new ServerWaitingDialog();
+        Task<Void> waitingTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                var multiplayerClient = new MultiplayerClient(serverIP);
+                var playerNumber = serverStartResult.get().getNumberOfPlayers();
+                var actualPlayerCount = multiplayerClient.getPlayers().size();
+                while (playerNumber != actualPlayerCount) {
+                    actualPlayerCount = multiplayerClient.getPlayers().size();
+                    System.out.println("Waiting for players to join");
+                    updateMessage("Waiting for players to join, total players: "
+                            + actualPlayerCount + " / " + playerNumber);
+
+                }
+                return null;
+            }
+
+            @Override
+            protected void updateMessage(String message) {
+                super.updateMessage(message);
+                Platform.runLater(() -> waitingDialog.setMessage(message));
+            }
+
+            @Override
+            protected void succeeded() {
+                super.succeeded();
+                Platform.runLater(waitingDialog::close);
+            }
+        };
+        new Thread(waitingTask).start();
+        return waitingDialog;
+    }
+
+    private ServerWaitingDialog OptionJoinWaitForPlayers() {
+        ServerWaitingDialog waitingDialog = new ServerWaitingDialog();
+        Task<Void> waitingTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                var multiplayerClient = new MultiplayerClient(serverIP);
+
+                var playerNumber = multiplayerClient.getTotalPlayers();
+                var actualPlayerCount = multiplayerClient.getPlayers().size();
+                while (playerNumber != actualPlayerCount) {
+                    actualPlayerCount = multiplayerClient.getPlayers().size();
+                    System.out.println("Waiting for players to join");
+                    updateMessage("Waiting for players to join, total players: "
+                            + actualPlayerCount + " / " + playerNumber);
+                }
+                return null;
+            }
+
+            @Override
+            protected void updateMessage(String message) {
+                super.updateMessage(message);
+                Platform.runLater(() -> waitingDialog.setMessage(message));
+            }
+
+            @Override
+            protected void succeeded() {
+                super.succeeded();
+                Platform.runLater(waitingDialog::close);
+            }
+        };
+        new Thread(waitingTask).start();
+        return waitingDialog;
     }
 
     public void saveGame() throws IOException, InterruptedException {
@@ -216,9 +284,9 @@ public class AppController implements Observer {
         TextInputDialog saveGameDialog = new TextInputDialog();
         saveGameDialog.setTitle("Save Game");
         saveGameDialog.setHeaderText("Provide save-point name:");
-        Optional<String> result = saveGameDialog.showAndWait();
+        Optional<String> saveGameNameValue = saveGameDialog.showAndWait();
 
-        if (result.isPresent() && result.get() != "") {
+        if (saveGameNameValue.isPresent() && saveGameNameValue.get() != "") {
 
             HttpClient client = HttpClient.newHttpClient();
             ObjectMapper objectMapper = new ObjectMapper();
@@ -238,10 +306,10 @@ public class AppController implements Observer {
                                 .toArray(ServerPlayerModel[]::new));
 
                 ServerModel serverModel = new ServerModel(
-                        result.get(),
+                        saveGameNameValue.get(),
                         gameController.board.boardName,
                         gameController.board.getCurrentPlayer().getName(),
-                        result.get(),
+                        saveGameNameValue.get(),
                         gameController.board.getPhase(),
                         gameController.board.getStep(),
                         players);
@@ -323,7 +391,7 @@ public class AppController implements Observer {
 
                         BoardTemplate template = LoadBoard.GetBoardTemplate(savedPoint.GetBoardName());
                         Board board = new Board(template.width, template.height,
-                                savedPoint.GetName());
+                                savedPoint.GetBoardName());
                         for (SpaceTemplate spaceTemplate : template.spaces) {
                             Space space = board.getSpace(spaceTemplate.x, spaceTemplate.y);
                             if (space != null) {

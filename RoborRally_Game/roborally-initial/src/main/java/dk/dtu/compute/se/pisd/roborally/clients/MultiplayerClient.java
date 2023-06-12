@@ -5,6 +5,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import dk.dtu.compute.se.pisd.roborally.model.MultiplayerModel;
 import dk.dtu.compute.se.pisd.roborally.model.MultiplayerPlayerModel;
+import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -74,6 +75,24 @@ public class MultiplayerClient {
                 .uri("/multiplayer/nextPlayerTurn")
                 .retrieve()
                 .bodyToMono(Integer.class)
+                .block();
+    }
+
+    public void postSaveState(ServerModel serverModel) {
+        webClient.post()
+                .uri("/multiplayer/savestate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(serverModel), ServerModel.class)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
+
+    public ServerModel getSaveState() {
+        return webClient.get()
+                .uri("/multiplayer/getstate")
+                .retrieve()
+                .bodyToMono(ServerModel.class)
                 .block();
     }
 }
