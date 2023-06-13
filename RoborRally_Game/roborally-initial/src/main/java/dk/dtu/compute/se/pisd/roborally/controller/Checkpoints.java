@@ -1,59 +1,63 @@
 package dk.dtu.compute.se.pisd.roborally.controller;
 
-import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.Space;
 
-public class Checkpoints extends FieldAction {
+/*public class Checkpoints extends FieldAction {
 
 
     private final int orderNo;
 
     public Checkpoints(int orderNo) {
         this.orderNo = orderNo;
-    }
-
-    /**
-     * Executes the field action for a given space. In order to be able to do
-     * that the GameController associated with the game is passed to this method.
-     *
-     * @param gameController the gameController of the respective game
-     * @param space          the space this action should be executed for
-     * @return whether the action was successfully executed
-     */
-    //@Override
-   /* public boolean doAction(GameController gameController, Space space) {
-        // needs to be implemented
+    }*/
 
 
-        return false;
-    }
-}*/
-    @Override
-    public boolean doAction(GameController gameController, Space space) {
-        Board board = space.board; // Get the board associated with the space
-        if (board != null && gameController.board == board) {
-            Player player = space.getPlayer(); // Get the player associated with the space
-            if (player != null) {
-                // Perform the specific action for the checkpoint based on its order number
-                switch (orderNo) {
-                    case 1:
-                        // Perform action for checkpoint 1
-                        // ...
-                        break;
-                    case 2:
-                        // Perform action for checkpoint 2
-                        // ...
-                        break;
-                    // Add more cases for additional checkpoints as needed
-                    default:
-                        // Unknown checkpoint order number
-                        break;
-                }
-                return true; // Action executed successfully
-            }
+
+
+
+    public class Checkpoints extends FieldAction {
+
+        private static int lastCheckpointNumber=1 ;
+        private int checkpointNumber;
+
+
+        public Checkpoints(int checkpointNumber, int lastCheckpoint) {
+            Checkpoints.lastCheckpointNumber = lastCheckpoint;
+
+
         }
-        return false; // Action not executed
-    }
 
-}
+        public int getCheckpointNumber() {
+            return checkpointNumber;
+        }
+
+
+        public static void setlastCheckpointNumber(int LastCheckpointNumber) {
+            Checkpoints.lastCheckpointNumber = LastCheckpointNumber;
+        }
+
+        @Override
+        public boolean doAction(GameController gameController, Space space) {
+
+            if (space.getActions().size() > 0) {
+                Checkpoints checkpointnumber = (Checkpoints) space.getActions().get(0);
+                Player player = space.getPlayer();
+
+                // Checks if the player step on the checkpoint in correct order.
+                if (player != null && player.checkPoints + 1 == checkpointnumber.checkpointNumber) {
+                    player.checkPoints++;
+
+                    if (player.checkPoints == lastCheckpointNumber) {
+                        //Show a massage when a player won the game
+                        gameController.Winner_Massage(space);
+                        lastCheckpointNumber = 0; // Needs because the static variable is never resat
+                        gameController.board.gameOver = true;
+
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+    }

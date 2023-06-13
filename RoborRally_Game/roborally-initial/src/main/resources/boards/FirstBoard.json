@@ -18,6 +18,18 @@
       "y": 0
     },
     {
+      "walls": [],
+      "actions": [
+        {
+          "CLASSNAME": "dk.dtu.compute.se.pisd.roborally.controller.StartSpaces",
+          "INSTANCE": {
+          }
+        }
+      ],
+      "x": 2,
+      "y": 0
+    },
+    {
       "walls": [
         "NORTH"
       ],
@@ -263,12 +275,25 @@
         {
           "CLASSNAME": "dk.dtu.compute.se.pisd.roborally.controller.Checkpoints",
           "INSTANCE": {
-            "LastCheckpointNumber": "true"
+            "checkpointNumber": 1
           }
         }
       ],
-      "x": 8,
-      "y": 4
+      "x": 7,
+      "y": 5
+    },
+    {
+      "walls": [],
+      "actions": [
+        {
+          "CLASSNAME": "dk.dtu.compute.se.pisd.roborally.controller.Checkpoints",
+          "INSTANCE": {
+            "checkpointNumber": 2
+          }
+        }
+      ],
+      "x": 7,
+      "y": 3
     }
   ]
 }

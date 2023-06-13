@@ -22,17 +22,15 @@
 package dk.dtu.compute.se.pisd.roborally.model;
 
 import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
-import dk.dtu.compute.se.pisd.roborally.controller.Checkpoints;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import static dk.dtu.compute.se.pisd.roborally.model.Heading.SOUTH;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * ...
@@ -58,6 +56,11 @@ public class Player extends Subject {
 
     private CommandCardField[] program;
     private CommandCardField[] cards;
+
+    private Space currentSpace;
+
+
+
 
     public Player() {
     }
@@ -181,4 +184,13 @@ public class Player extends Subject {
             this.cards[i].setCard(cards.get(i));
         }
     }
+
+    public void setCurrentSpace(Space space) {
+        if (currentSpace != null) {
+            currentSpace.removePlayer(this);
+        }
+        currentSpace = space;
+    }
 }
+
+
