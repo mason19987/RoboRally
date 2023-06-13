@@ -28,7 +28,6 @@ import dk.dtu.compute.se.pisd.roborally.clients.MultiplayerClient;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.BoardTemplate;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.SpaceTemplate;
-import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerGameState;
 import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerJoinDialog;
 import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerJoinOrStartDialog;
 import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerMultiplayerLogic;
@@ -318,7 +317,7 @@ public class AppController implements Observer {
                         saveGameNameValue.get(),
                         gameController.board.getPhase(),
                         gameController.board.getStep(),
-                        players);
+                        players, null);
 
                 String jsonPostData = objectMapper
                         .writeValueAsString(serverModel);
@@ -444,6 +443,9 @@ public class AppController implements Observer {
                         this.gameController = new GameController(board);
                         roboRally.createBoardView(gameController);
 
+                        MultiplayerClient multiplayerClient = new MultiplayerClient(serverIP);
+                        ServerMultiplayerLogic.newGameLoaded = true;
+                        ServerMultiplayerLogic.isMyTurn = multiplayerClient.getPlayerTurn() == playerId;
                     }
                 }
             }
