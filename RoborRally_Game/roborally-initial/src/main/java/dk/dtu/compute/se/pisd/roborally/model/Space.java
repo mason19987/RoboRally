@@ -27,6 +27,8 @@ import dk.dtu.compute.se.pisd.roborally.controller.FieldAction;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dk.dtu.compute.se.pisd.roborally.controller.AppController.gameController;
+
 /**
  * ...
  *
@@ -45,6 +47,8 @@ public class Space extends Subject {
 
     public final int x;
     public final int y;
+
+    private List<Player> players;
 
 
     public Space(Board board, int x, int y) {
@@ -93,5 +97,17 @@ public class Space extends Subject {
         // notify the space of these changes by calling this method.
         notifyChange();
     }
+
+    public void addPlayer(Player player) {
+        players.add(player);
+    }
+
+    public void removePlayer(Player player) {
+        players.remove(player);
+    }
+
 }
+
+
+
 

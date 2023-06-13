@@ -26,6 +26,8 @@ import javafx.scene.control.Alert;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 
 /**
  * ...
@@ -36,6 +38,9 @@ import org.jetbrains.annotations.NotNull;
  * @version $Id: $Id
  */
 public class GameController {
+    private List<Player> players;
+    private List<Space> startSpaces;
+
 
     final public Board board;
 
@@ -46,6 +51,8 @@ public class GameController {
      */
     public GameController(@NotNull Board board) {
         this.board = board;
+
+
     }
 
     /**
@@ -500,6 +507,25 @@ public class GameController {
         }
     }
 
+
+    public void startGame() {
+        // Placer spillerne på startpositionerne
+        for (int i = 0; i < players.size(); i++) {
+            Player player = players.get(i);
+            Space startSpace = startSpaces.get(i);
+            player.setCurrentSpace(startSpace);
+            startSpace.addPlayer(player);
+        }
+    }
+/*
+    public boolean chech_end_game() {
+        if (!player.getSpace().getActions().isEmpty() &&
+                player.getSpace().getActions().get(0) instanceof Checkpoints) {
+            player.getSpace().getActions().get(0).doAction(this, player.getSpace());
+            return true;
+        }
+    }*/
+
     public void Winner_Massage(Space space){
         Alert winnerMassage = new Alert(Alert.AlertType.INFORMATION);
         winnerMassage.setTitle("Game Ended");
@@ -508,6 +534,6 @@ public class GameController {
 
     }
 
-
 }
+
 
