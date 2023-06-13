@@ -18,15 +18,36 @@ import dk.dtu.compute.se.pisd.roborally.model.ServerPlayerModel;
 import dk.dtu.compute.se.pisd.roborally.model.Space;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 
+/**
+ * The ServerGameState class is responsible for interacting with the game server. It loads and sets the server model 
+ * for the game state. This class is utilized for multiplayer gaming sessions and communicates with the server 
+ * using a MultiplayerClient instance.
+ * @author Shoaib Zafar Mian, s200784@dtu.dk
+ */
+
 public class ServerGameState {
 
     private MultiplayerClient multiplayerClient;
     private String serverIP;
 
+  /**
+     * Creates a ServerGameState instance with the provided server IP address.
+     *
+     * @param serverIP the IP address of the server.
+     * @author Shoaib Zafar Mian, s200784@dtu.dk
+     */
+
     public ServerGameState(String serverIP) {
         this.serverIP = serverIP;
         multiplayerClient = new MultiplayerClient(this.serverIP);
     }
+
+/**
+     * Loads the game state from the server. It retrieves a saved point from the server and constructs 
+     * a new game state based on that. The board, players, and their respective attributes are 
+     * recreated based on the information from the server.
+     * @author Shoaib Zafar Mian, s200784@dtu.dk
+     */
 
     public void loadServerModel() {
         ServerModel savedPoint = multiplayerClient.getSaveState();
@@ -80,6 +101,12 @@ public class ServerGameState {
         AppController.roboRally.createBoardView(AppController.gameController);
         AppController.gameController.board.notifyAll();
     }
+
+ /**
+     * Sets the game state on the server. It constructs a ServerModel from the current game state
+     * and sends it to the server. The server uses this information to update its state.
+     * @author Shoaib Zafar Mian, s200784@dtu.dk
+     */
 
     public void setServerModel() {
         try {
