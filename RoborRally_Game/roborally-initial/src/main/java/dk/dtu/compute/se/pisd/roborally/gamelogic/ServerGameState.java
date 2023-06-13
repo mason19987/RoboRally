@@ -48,7 +48,8 @@ public class ServerGameState {
         List<Player> players = savedPoint.GetPlayers().stream().map(player -> new Player(
                 board,
                 player.GetColor(),
-                player.GetName())).collect(Collectors.toList());
+                player.GetName(),
+                player.GetCheckPoints())).collect(Collectors.toList());
 
         for (int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
@@ -93,7 +94,8 @@ public class ServerGameState {
                             player.getHeading(),
                             Arrays.stream(player.GetCards())
                                     .map(card -> new CommandCard(card.getCard().command).getName())
-                                    .collect(Collectors.toList())))
+                                    .collect(Collectors.toList()),
+                            player.getCheckPoints()))
                             .toArray(ServerPlayerModel[]::new));
 
             ServerModel serverModel = new ServerModel(

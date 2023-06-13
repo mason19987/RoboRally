@@ -21,17 +21,20 @@ public class ServerPlayerModel {
 
     private List<String> commands;
 
+    private List<Integer> checkPoints;
+
     public ServerPlayerModel() {
     }
 
     public ServerPlayerModel(String name, String color, int positionX, int positionY, Heading heading,
-            List<String> commands) {
+            List<String> commands, List<Integer> checkPoints) {
         this.name = name;
         this.color = color;
         this.positionX = positionX;
         this.positionY = positionY;
         this.heading = heading;
         this.commands = commands;
+        this.checkPoints = checkPoints;
     }
 
     public String GetName() {
@@ -56,5 +59,9 @@ public class ServerPlayerModel {
 
     public List<String> GetCommands() {
         return this.commands;
+    }
+
+    public List<Integer> GetCheckPoints() {
+        return this.checkPoints;
     }
 }

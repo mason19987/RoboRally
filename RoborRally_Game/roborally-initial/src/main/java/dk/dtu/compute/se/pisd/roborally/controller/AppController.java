@@ -61,6 +61,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpRequest.BodyPublishers;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -139,7 +140,7 @@ public class AppController implements Observer {
 
                         multiplayerClient.setTotalPlayers(playerNumber);
                         multiplayerClient
-                                .join(new MultiplayerPlayerModel(playerId, playerId + "-" + hostname, ipAddress));
+                                .join(new MultiplayerPlayerModel(playerId, playerId + "-" + hostname, ipAddress, new ArrayList<>()));
 
                         ServerWaitingDialog waitingDialog = OptionStartWaitForPlayers(serverStartResult);
                         waitingDialog.open("Waiting for players to join, total players: "
@@ -156,7 +157,8 @@ public class AppController implements Observer {
                         multiplayerClient = new MultiplayerClient(serverIP);
                         var serverPlayers = multiplayerClient.getPlayers();
                         playerId = serverPlayers.size();
-                        multiplayerClient.join(new MultiplayerPlayerModel(playerId, playerId + "-" + hostname, ipAddress));
+                        multiplayerClient
+                                .join(new MultiplayerPlayerModel(playerId, playerId + "-" + hostname, ipAddress, new ArrayList<>()));
 
                         ServerWaitingDialog waitingDialog = OptionJoinWaitForPlayers();
                         waitingDialog.open("Waiting for players to join, total players: "
@@ -181,7 +183,6 @@ public class AppController implements Observer {
                 board = LoadBoard.loadBoard(resultBoardSelection.get());
             }
 
-
             if (gameController != null) {
                 if (!stopGame()) {
                     return;
@@ -190,13 +191,15 @@ public class AppController implements Observer {
 
             var serverPlayers = multiplayerClient.getPlayers();
             for (int i = 0; i < serverPlayers.size(); i++) {
-                Player player = new Player(board, PLAYER_COLORS.get(i), serverPlayers.get(i).GetName());
+                Player player = new Player(
+                    board, PLAYER_COLORS.get(i), 
+                    serverPlayers.get(i).GetName(),
+                    serverPlayers.get(i).GetCheckPoints());
                 board.addPlayer(player);
                 player.setSpace(board.getSpace(i % board.width, i));
             }
 
             gameController = new GameController(board);
-
 
             gameController.startProgrammingPhase();
             roboRally.createBoardView(gameController);
@@ -304,7 +307,8 @@ public class AppController implements Observer {
                                 player.getHeading(),
                                 Arrays.stream(player.GetCards())
                                         .map(card -> new CommandCard(card.getCard().command).getName())
-                                        .collect(Collectors.toList())))
+                                        .collect(Collectors.toList()),
+                                player.getCheckPoints()))
                                 .toArray(ServerPlayerModel[]::new));
 
                 ServerModel serverModel = new ServerModel(
@@ -408,7 +412,8 @@ public class AppController implements Observer {
                         List<Player> players = savedPoint.GetPlayers().stream().map(player -> new Player(
                                 board,
                                 player.GetColor(),
-                                player.GetName())).collect(Collectors.toList());
+                                player.GetName(),
+                                player.GetCheckPoints())).collect(Collectors.toList());
 
                         for (int i = 0; i < players.size(); i++) {
                             Player player = players.get(i);
