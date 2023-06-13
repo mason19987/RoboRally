@@ -15,9 +15,11 @@ public class ServerMultiplayerLogic {
     private RoboRally roboRally;
     private GameController gameController;
     public static int currentPlayerTurn = 0;
-    private static boolean isMyTurn = false;
+    public static boolean isMyTurn = false;
     private boolean myTurnCompleted = false;
     private boolean isGameInitiator = false;
+
+    public static boolean newGameLoaded = false;
 
     public ServerMultiplayerLogic(String localIP, String serverIP, int playerId,
             RoboRally roboRally, GameController gameController, boolean isGameInitiator) {
@@ -53,7 +55,7 @@ public class ServerMultiplayerLogic {
                             currentPlayerTurn = multiplayerClient.getPlayerTurn();
                             isMyTurn = playerId == currentPlayerTurn ? true : false;
                             if (isMyTurn) {
-                                myTurn();                                
+                                myTurn();
                             } else {
                                 Platform.runLater(() -> {
                                     serverGameState.loadServerModel();
@@ -84,14 +86,25 @@ public class ServerMultiplayerLogic {
                     Platform.runLater(() -> {
                         serverGameState.loadServerModel();
                     });
+
                     while (!myTurnCompleted) {
                         Thread.sleep(4000);
+                        if (ServerMultiplayerLogic.newGameLoaded) {
+                            myTurnCompleted = true;
+                        }
                     }
-                    Thread.sleep(1000);
-                    serverGameState.setServerModel();
-                    multiplayerClient.nextPlayerTurn();
-                    myTurnCompleted = false;
-                    isMyTurn = false;
+
+                    if (!ServerMultiplayerLogic.newGameLoaded) {
+                        Thread.sleep(1000);
+                        serverGameState.setServerModel();
+                        multiplayerClient.nextPlayerTurn();
+                        myTurnCompleted = false;
+                        isMyTurn = false;
+                    }
+                    else{
+                        Thread.sleep(5000);
+                        ServerMultiplayerLogic.newGameLoaded = false;
+                    }
                     return null;
                 } catch (Exception e) {
                     var dd = 0;

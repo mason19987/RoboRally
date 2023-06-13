@@ -19,13 +19,14 @@ public class ServerModel  {
     private Phase phase;
     private int step;
     private List<ServerPlayerModel> players;
+    private MultiplayerModel multiplayerModel;
 
 
     public ServerModel() {
     }
 
     public ServerModel(String name, String boardName, String currentPlayerName, String gameName, Phase phase, int step,
-            List<ServerPlayerModel> players) {
+            List<ServerPlayerModel> players, MultiplayerModel multiplayerModel) {
         this.name = name;
         this.boardName = boardName;
         this.currentPlayerName = currentPlayerName;
@@ -33,6 +34,7 @@ public class ServerModel  {
         this.phase = phase;
         this.step = step;
         this.players = players;
+        this.multiplayerModel = multiplayerModel;
     }
 
     public String GetName() {
@@ -62,6 +64,5 @@ public class ServerModel  {
     public List<ServerPlayerModel> GetPlayers() {
         return this.players;
     }
-
 }
 

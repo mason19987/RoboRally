@@ -16,6 +16,8 @@ public class MultiplayerModel {
 
     private int playerTurn; // if 0 then player 0 turn, if 1 then player 1 turn, based on player id
     private List<MultiplayerPlayerModel> players;
+    private ServerModel gamestate;
+    private int totalPlayers;
 
     public MultiplayerModel() {
         // Needed to convert from json file to object

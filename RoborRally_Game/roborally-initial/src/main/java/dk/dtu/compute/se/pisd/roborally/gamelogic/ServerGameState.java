@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import dk.dtu.compute.se.pisd.roborally.RoboRally;
 import dk.dtu.compute.se.pisd.roborally.clients.MultiplayerClient;
 import dk.dtu.compute.se.pisd.roborally.controller.AppController;
 import dk.dtu.compute.se.pisd.roborally.controller.GameController;
@@ -105,7 +104,7 @@ public class ServerGameState {
                     "MultiplayerGame",
                     gameController.board.getPhase(),
                     gameController.board.getStep(),
-                    players);
+                    players, null);
 
             multiplayerClient.postSaveState(serverModel);
         } catch (Exception e) {
