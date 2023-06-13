@@ -6,6 +6,12 @@ import dk.dtu.compute.se.pisd.roborally.controller.GameController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 
+/**
+ * The ServerMultiplayerLogic class manages the multiplayer logic for the game. It uses a ServerGameState
+ * to interact with the game server and determines when it's the turn of the local player.
+ * @author Shoaib Zafar Mian, s200784@dtu.dk
+ */
+
 public class ServerMultiplayerLogic {
     private MultiplayerClient multiplayerClient;
     private ServerGameState serverGameState;
@@ -21,6 +27,19 @@ public class ServerMultiplayerLogic {
 
     public static boolean newGameLoaded = false;
 
+/**
+     * Initializes a new ServerMultiplayerLogic instance with the specified parameters.
+     *
+     * @param localIP the local IP address.
+     * @param serverIP the server IP address.
+     * @param playerId the player ID.
+     * @param roboRally the RoboRally instance.
+     * @param gameController the GameController instance.
+     * @param isGameInitiator a boolean indicating if the player initiated the game.
+     * 
+     * @author Shoaib Zafar Mian, s200784@dtu.dk
+     */
+
     public ServerMultiplayerLogic(String localIP, String serverIP, int playerId,
             RoboRally roboRally, GameController gameController, boolean isGameInitiator) {
         this.multiplayerClient = new MultiplayerClient(serverIP);
@@ -31,7 +50,14 @@ public class ServerMultiplayerLogic {
         this.gameController = gameController;
         this.isGameInitiator = isGameInitiator;
         this.serverGameState = new ServerGameState(serverIP);
+
     }
+
+/**
+     * Starts the multiplayer logic. It creates a new task that continuously checks if it's the turn of the local player. 
+     * If it is, it invokes the myTurn() method. Otherwise, it keeps loading the server model.
+     * @author Shoaib Zafar Mian, s200784@dtu.dk
+     */
 
     public void Start() {
         Task<Void> waitingTask = new Task<Void>() {
@@ -74,6 +100,12 @@ public class ServerMultiplayerLogic {
         new Thread(waitingTask).start();
     }
 
+/**
+     * Executes the actions for the local player's turn. It loads the server model and waits until the turn is completed. 
+     * Once the turn is completed, it sets the server model and notifies the server to proceed to the next player's turn.
+     * @author Shoaib Zafar Mian, s200784@dtu.dk
+     */
+
     private void myTurn() {
         Task<Void> waitingTask = new Task<Void>() {
             @Override
@@ -115,6 +147,10 @@ public class ServerMultiplayerLogic {
         new Thread(waitingTask).start();
     }
 
+/**
+     * Marks the local player's turn as completed.
+     * @author Shoaib Zafar Mian, s200784@dtu.dk
+     */
     public void turnCompleted() {
         myTurnCompleted = true;
     }

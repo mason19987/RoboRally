@@ -163,9 +163,7 @@ public class AppController implements Observer {
                         waitingDialog.open("Waiting for players to join, total players: "
                                 + multiplayerClient.getPlayers().size() + " / " + playerNumber + "");
 
-                        // Now you should connect to the server with the new IP address
-                        // and wait for the game to start. This involves a server-side implementation.
-                        // Once the game starts, you should get the board state from the server.
+                        
                     }
                     break;
             }
