@@ -517,14 +517,6 @@ public class GameController {
             startSpace.addPlayer(player);
         }
     }
-/*
-    public boolean chech_end_game() {
-        if (!player.getSpace().getActions().isEmpty() &&
-                player.getSpace().getActions().get(0) instanceof Checkpoints) {
-            player.getSpace().getActions().get(0).doAction(this, player.getSpace());
-            return true;
-        }
-    }*/
 
     public void Winner_Massage(Space space){
         Alert winnerMassage = new Alert(Alert.AlertType.INFORMATION);

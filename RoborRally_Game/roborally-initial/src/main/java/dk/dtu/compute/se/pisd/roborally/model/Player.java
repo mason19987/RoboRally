@@ -49,7 +49,7 @@ public class Player extends Subject {
     private String name;
     private String color;
     private int point = 0;
-    public int checkPoints = 0;
+    private List<Integer> checkPoints = new ArrayList<>();
 
     private Space space;
     private Heading heading = SOUTH;
@@ -59,16 +59,14 @@ public class Player extends Subject {
 
     private Space currentSpace;
 
-
-
-
     public Player() {
     }
 
-    public Player(@NotNull Board board, String color, @NotNull String name) {
+    public Player(@NotNull Board board, String color, @NotNull String name, List<Integer> checkPoints) {
         this.board = board;
         this.name = name;
         this.color = color;
+        this.checkPoints = checkPoints;
 
         this.space = null;
 
@@ -191,6 +189,12 @@ public class Player extends Subject {
         }
         currentSpace = space;
     }
+
+    public List<Integer> getCheckPoints() {
+        return checkPoints;
+    }
+
+    public void setCheckPoint(int checkPoint) {
+        checkPoints.add(checkPoint);
+    }
 }
-
-

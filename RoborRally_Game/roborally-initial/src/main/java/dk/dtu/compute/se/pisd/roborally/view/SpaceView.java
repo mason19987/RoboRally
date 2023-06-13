@@ -35,8 +35,6 @@ import javafx.scene.shape.*;
 import javafx.scene.shape.Polygon;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 
 /**
  * ...
@@ -148,7 +146,7 @@ public class SpaceView extends StackPane implements ViewObserver {
                     }
                     getChildren().add(circle);
 
-                } else if (space.getActions().get(0) instanceof Checkpoints checkpoint) {
+                } else if (space.getActions().get(0) instanceof Checkpoint checkpoint) {
                     ImageView SpaceView;
                     switch (checkpoint.getCheckpointNumber()) {
                         case 1 -> SpaceView = new ImageView(new Image("Images/checkPoint1.png"));
@@ -158,25 +156,14 @@ public class SpaceView extends StackPane implements ViewObserver {
                     }
                     this.getChildren().add(SpaceView);
 
-
                 } else if (space.getActions().get(0) instanceof StartSpaces) {
                     ImageView SpaceView;
                     SpaceView = new ImageView(new Image("Images/StartSpaces.png"));
                     this.getChildren().add(SpaceView);
                     updatePlayer();
-
                 }
-
             }
-            //Her tegnes spilleren
             updatePlayer();
         }
     }
 }
-
-
-
-
-
-
-
