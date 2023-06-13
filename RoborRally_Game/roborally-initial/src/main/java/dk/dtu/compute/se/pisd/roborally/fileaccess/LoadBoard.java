@@ -32,6 +32,8 @@ import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.model.Space;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ...
@@ -163,6 +165,27 @@ public class LoadBoard {
                 }
             }
         }
+    }
+
+    private static List<Space> getSpacesFieldAction(Board board, FieldAction action) {
+        List<Space> spaces = new ArrayList<>();
+
+        for (int y = 0; y < board.height; y++) {
+            for (int x = 0; x < board.width; x++) {
+                Space curSpace = board.getSpace(x, y);
+                List<FieldAction> curSpaceActions = curSpace.getActions();
+
+                if (curSpaceActions.size() == 0)
+                    continue;
+
+                String curFieldActionName = curSpaceActions.get(0).getClass().getSimpleName();
+                if (curFieldActionName.equals(action.getClass().getSimpleName())) {
+                    spaces.add(curSpace);
+                }
+            }
+        }
+        return spaces;
+
     }
 
 }

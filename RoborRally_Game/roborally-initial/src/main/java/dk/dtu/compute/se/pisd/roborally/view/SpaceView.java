@@ -26,6 +26,8 @@ import dk.dtu.compute.se.pisd.roborally.controller.*;
 import dk.dtu.compute.se.pisd.roborally.model.Heading;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.Space;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -33,6 +35,7 @@ import javafx.scene.shape.*;
 import javafx.scene.shape.Polygon;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 
 
 /**
@@ -48,6 +51,7 @@ public class SpaceView extends StackPane implements ViewObserver {
     final public static int SPACE_WIDTH = 60;  // 60; // 75;
 
     public final Space space;
+    public Player player;
 
 
     public SpaceView(@NotNull Space space) {
@@ -143,19 +147,30 @@ public class SpaceView extends StackPane implements ViewObserver {
                         circle.setFill(Color.DARKRED);
                     }
                     getChildren().add(circle);
+
+                } else if (space.getActions().get(0) instanceof Checkpoints checkpoint) {
+                    ImageView SpaceView;
+                    switch (checkpoint.getCheckpointNumber()) {
+                        case 1 -> SpaceView = new ImageView(new Image("Images/checkPoint1.png"));
+                        case 2 -> SpaceView = new ImageView(new Image("Images/checkPoint2.png"));
+                        case 3 -> SpaceView = new ImageView(new Image("Images/checkPoint3.png"));
+                        default -> throw new IllegalStateException("Unexepted value: " + checkpoint.getCheckpointNumber());
+                    }
+                    this.getChildren().add(SpaceView);
+
+
+                } else if (space.getActions().get(0) instanceof StartSpaces) {
+                    ImageView SpaceView;
+                    SpaceView = new ImageView(new Image("Images/StartSpaces.png"));
+                    this.getChildren().add(SpaceView);
                     updatePlayer();
-                }else if (actions instanceof Checkpoints){
-                    Checkpoints checkpoints = (Checkpoints) actions;
-                    Ellipse ellipse = new Ellipse(20, 20);
-                    ellipse.setFill(Color.BLUEVIOLET);
+
                 }
 
             }
             //Her tegnes spilleren
             updatePlayer();
-
         }
-
     }
 }
 
