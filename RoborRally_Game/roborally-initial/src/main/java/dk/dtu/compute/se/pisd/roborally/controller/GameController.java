@@ -169,6 +169,8 @@ public class GameController {
         do {
             executeNextStep();
         } while (board.getPhase() == Phase.ACTIVATION && !board.isStepMode());
+
+        AppController.smpl.turnCompleted();
     }
 
     // XXX: V2

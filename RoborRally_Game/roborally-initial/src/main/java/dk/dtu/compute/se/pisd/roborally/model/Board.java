@@ -38,7 +38,6 @@ import static dk.dtu.compute.se.pisd.roborally.model.Phase.INITIALISATION;
  * @author Shoaib Zafar Mian, s200784.dk
  */
 
- 
 @JsonIgnoreProperties(value = { "current" })
 public class Board extends Subject {
 
@@ -65,7 +64,6 @@ public class Board extends Subject {
     private boolean stepMode;
 
     private int count;
-
 
     public Board(int width, int height, @NotNull String boardName) {
         this.boardName = boardName;
@@ -125,6 +123,15 @@ public class Board extends Subject {
         } else {
             return null;
         }
+    }
+
+    public Player getPlayerById(int playerId) {
+        for (Player player : players) {
+            if (Integer.parseInt(player.getName().split("-")[0]) == playerId) {
+                return player;
+            }
+        }
+        return null;
     }
 
     public Player getCurrentPlayer() {
@@ -187,7 +194,8 @@ public class Board extends Subject {
      *
      * @param space   the space for which the neighbour should be computed
      * @param heading the heading of the neighbour
-     * @return the space in the given direction; null if there is no (reachable) neighbour
+     * @return the space in the given direction; null if there is no (reachable)
+     *         neighbour
      */
     public Space getNeighbour(@NotNull Space space, @NotNull Heading heading) {
         int x = space.x;
@@ -208,7 +216,6 @@ public class Board extends Subject {
         }
         return getSpace(x, y);
     }
-
 
     /**
      * Method to make the player move one field backwards
@@ -241,7 +248,9 @@ public class Board extends Subject {
     }
 
     /**
-     * <p>getStatusMessage.</p>
+     * <p>
+     * getStatusMessage.
+     * </p>
      *
      * @return a {@link java.lang.String} object.
      */
@@ -251,32 +260,32 @@ public class Board extends Subject {
         // status of the game
 
         // TODO Assignment V1: this string could eventually be refined
-        //      The status line should show more information based on
-        //      situation; for now, introduce a counter to the Board,
-        //      which is counted up every time a player makes a move; the
-        //      status line should show the current player and the number
-        //      of the current move!
+        // The status line should show more information based on
+        // situation; for now, introduce a counter to the Board,
+        // which is counted up every time a player makes a move; the
+        // status line should show the current player and the number
+        // of the current move!
 
         /**
-         * This string show information on situation, that introduce a counter to the Board
+         * This string show information on situation, that introduce a counter to the
+         * Board
          * which is counted up every time a player makes a move.
          * The status line show the current player and the number of the current move
          *
          * @author Mohamad Anwar Meri, s215713@dtu.dk
          */
 
-        // XXX: V2 changed the status so that it shows the phase, the player and the step
+        // XXX: V2 changed the status so that it shows the phase, the player and the
+        // step
         return "Phase: " + getPhase().name() +
                 ", Player = " + getCurrentPlayer().getName() + ", The Number Of Moves " + getCount() +
                 ", Step: " + getStep();
 
-
     }
 
-
     // TODO Assignment V1: add a counter along with a getter and a setter, so the
-    //      state the board (game) contains the number of moves, which then can
-    //      be used to extend the status message including the number of
+    // state the board (game) contains the number of moves, which then can
+    // be used to extend the status message including the number of
 
     /**
      * We added a counter to the game, that contains the number of moves.
@@ -300,5 +309,3 @@ public class Board extends Subject {
     }
 
 }
-
-

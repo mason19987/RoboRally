@@ -24,17 +24,26 @@ package dk.dtu.compute.se.pisd.roborally.controller;
 import dk.dtu.compute.se.pisd.designpatterns.observer.Observer;
 import dk.dtu.compute.se.pisd.designpatterns.observer.Subject;
 import dk.dtu.compute.se.pisd.roborally.RoboRally;
+import dk.dtu.compute.se.pisd.roborally.clients.MultiplayerClient;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.LoadBoard;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.BoardTemplate;
 import dk.dtu.compute.se.pisd.roborally.fileaccess.model.SpaceTemplate;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerGameState;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerJoinDialog;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerJoinOrStartDialog;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerMultiplayerLogic;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerStartDialog;
+import dk.dtu.compute.se.pisd.roborally.gamelogic.ServerWaitingDialog;
 import dk.dtu.compute.se.pisd.roborally.model.Board;
 import dk.dtu.compute.se.pisd.roborally.model.Command;
 import dk.dtu.compute.se.pisd.roborally.model.CommandCard;
+import dk.dtu.compute.se.pisd.roborally.model.MultiplayerPlayerModel;
 import dk.dtu.compute.se.pisd.roborally.model.Player;
 import dk.dtu.compute.se.pisd.roborally.model.ServerModel;
 import dk.dtu.compute.se.pisd.roborally.model.ServerPlayerModel;
 import dk.dtu.compute.se.pisd.roborally.model.Space;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -43,7 +52,6 @@ import javafx.scene.control.TextInputDialog;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -57,6 +65,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * ...
@@ -71,9 +81,12 @@ public class AppController implements Observer {
     final private List<String> PLAYER_COLORS = Arrays.asList("red", "green", "blue", "orange", "grey", "magenta");
     final private List<String> BOARD_OPTIONS = Arrays.asList("FirstBoard", "SecondBoard");
 
-    final private RoboRally roboRally;
+    public static RoboRally roboRally;
 
-    private GameController gameController;
+    public static GameController gameController;
+    public static String serverIP = "http://localhost:8080";
+    public static ServerMultiplayerLogic smpl;
+    public static int playerId = 0;
 
     /**
      * Making 2 different boards
@@ -87,58 +100,183 @@ public class AppController implements Observer {
     }
 
     public void newGame() {
+
+        // multiplayerClient.join(new MultiplayerPlayerModel(0, serverIP, serverIP));
+
         if (gameController != null) {
             if (!stopGame()) {
                 return;
             }
         }
 
-        ChoiceDialog<String> choiceDialog = new ChoiceDialog<>(BOARD_OPTIONS.get(0), BOARD_OPTIONS);
-        choiceDialog.setTitle("Board");
-        choiceDialog.setHeaderText("Choose please a board");
-        Optional<String> result = choiceDialog.showAndWait();
+        String hostname = "Unknown";
+        String ipAddress = "Unknown";
 
-        Board board = null;
-        if (result.isPresent()) {
-            board = LoadBoard.loadBoard(result.get());
+        try {
+            InetAddress addr;
+            addr = InetAddress.getLocalHost();
+            hostname = addr.getHostName();
+            ipAddress = addr.getHostAddress();
+        } catch (UnknownHostException ex) {
+            System.out.println("Hostname can not be resolved");
         }
 
-        ChoiceDialog<Integer> dialog = new ChoiceDialog<>(PLAYER_NUMBER_OPTIONS.get(0), PLAYER_NUMBER_OPTIONS);
-        dialog.setTitle("Player number");
-        dialog.setHeaderText("Select number of players");
-        Optional<Integer> result1 = dialog.showAndWait();
+        MultiplayerClient multiplayerClient = new MultiplayerClient(serverIP);
+        ServerJoinOrStartDialog serverJoin = new ServerJoinOrStartDialog();
+        Optional<ServerJoinOrStartDialog.DialogOption> serverJoinResult = serverJoin.displayStartOrJoinDialog();
 
-        if (result1.isPresent()) {
+        boolean isServer = false;
+        int playerNumber = 0;
+
+        if (serverJoinResult.isPresent()) {
+            switch (serverJoinResult.get()) {
+                case START:
+                    isServer = true;
+                    ServerStartDialog serverStart = new ServerStartDialog();
+                    Optional<ServerStartDialog.DialogOption> serverStartResult = serverStart.displayStartDialog();
+                    if (serverStartResult.isPresent()) {
+                        playerNumber = serverStartResult.get().getNumberOfPlayers();
+
+                        multiplayerClient.setTotalPlayers(playerNumber);
+                        multiplayerClient
+                                .join(new MultiplayerPlayerModel(playerId, playerId + "-" + hostname, ipAddress));
+
+                        ServerWaitingDialog waitingDialog = OptionStartWaitForPlayers(serverStartResult);
+                        waitingDialog.open("Waiting for players to join, total players: "
+                                + multiplayerClient.getPlayers().size() + " / " + playerNumber + "");
+                    }
+                    break;
+                case JOIN:
+                    isServer = false;
+                    ServerJoinDialog serverJoinDialog = new ServerJoinDialog();
+                    Optional<ButtonType> joinResult = serverJoinDialog.showAndWait();
+                    if (joinResult.isPresent() && joinResult.get() == ButtonType.OK) {
+
+                        serverIP = serverJoinDialog.getIpAddress();
+                        multiplayerClient = new MultiplayerClient(serverIP);
+                        var serverPlayers = multiplayerClient.getPlayers();
+                        playerId = serverPlayers.size();
+                        multiplayerClient.join(new MultiplayerPlayerModel(playerId, playerId + "-" + hostname, ipAddress));
+
+                        ServerWaitingDialog waitingDialog = OptionJoinWaitForPlayers();
+                        waitingDialog.open("Waiting for players to join, total players: "
+                                + multiplayerClient.getPlayers().size() + " / " + playerNumber + "");
+
+                        // Now you should connect to the server with the new IP address
+                        // and wait for the game to start. This involves a server-side implementation.
+                        // Once the game starts, you should get the board state from the server.
+                    }
+                    break;
+            }
+        }
+
+        Board board = null;
+
+        if (isServer) {
+            ChoiceDialog<String> choiceDialog = new ChoiceDialog<>(BOARD_OPTIONS.get(0), BOARD_OPTIONS);
+            choiceDialog.setTitle("Board");
+            choiceDialog.setHeaderText("Choose please a board");
+            Optional<String> resultBoardSelection = choiceDialog.showAndWait();
+            if (resultBoardSelection.isPresent()) {
+                board = LoadBoard.loadBoard(resultBoardSelection.get());
+            }
+
             if (gameController != null) {
-                // The UI should not allow this, but in case this happens anyway.
-                // give the user the option to save the game or abort this operation!
                 if (!stopGame()) {
                     return;
                 }
             }
 
-            // XXX the board should eventually be created programmatically or loaded from a
-            // file
-            // here we just create an empty board with the required number of players.
-            // Board board = new Board(8,8);
-            /**
-             * @author Mohamad Anwar Meri, s215713@dtu.dk
-             */
-            // Board board = LoadBoard.LoadBoardWall();
             gameController = new GameController(board);
-            int no = result1.get();
-            for (int i = 0; i < no; i++) {
-                Player player = new Player(board, PLAYER_COLORS.get(i), "Player " + (i + 1));
+
+            var serverPlayers = multiplayerClient.getPlayers();
+            for (int i = 0; i < serverPlayers.size(); i++) {
+                Player player = new Player(board, PLAYER_COLORS.get(i), serverPlayers.get(i).GetName());
                 board.addPlayer(player);
                 player.setSpace(board.getSpace(i % board.width, i));
             }
 
-            // XXX: V2
-            // board.setCurrentPlayer(board.getPlayer(0));
             gameController.startProgrammingPhase();
-
             roboRally.createBoardView(gameController);
+            multiplayerClient.start();
         }
+
+        smpl = new ServerMultiplayerLogic(
+                ipAddress,
+                serverIP,
+                playerId,
+                roboRally,
+                gameController,
+                isServer);
+        smpl.Start();
+    }
+
+    private ServerWaitingDialog OptionStartWaitForPlayers(Optional<ServerStartDialog.DialogOption> serverStartResult) {
+        ServerWaitingDialog waitingDialog = new ServerWaitingDialog();
+        Task<Void> waitingTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                var multiplayerClient = new MultiplayerClient(serverIP);
+                var playerNumber = serverStartResult.get().getNumberOfPlayers();
+                var actualPlayerCount = multiplayerClient.getPlayers().size();
+                while (playerNumber != actualPlayerCount) {
+                    actualPlayerCount = multiplayerClient.getPlayers().size();
+                    System.out.println("Waiting for players to join");
+                    updateMessage("Waiting for players to join, total players: "
+                            + actualPlayerCount + " / " + playerNumber);
+
+                }
+                return null;
+            }
+
+            @Override
+            protected void updateMessage(String message) {
+                super.updateMessage(message);
+                Platform.runLater(() -> waitingDialog.setMessage(message));
+            }
+
+            @Override
+            protected void succeeded() {
+                super.succeeded();
+                Platform.runLater(waitingDialog::close);
+            }
+        };
+        new Thread(waitingTask).start();
+        return waitingDialog;
+    }
+
+    private ServerWaitingDialog OptionJoinWaitForPlayers() {
+        ServerWaitingDialog waitingDialog = new ServerWaitingDialog();
+        Task<Void> waitingTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                var multiplayerClient = new MultiplayerClient(serverIP);
+
+                var playerNumber = multiplayerClient.getTotalPlayers();
+                var actualPlayerCount = multiplayerClient.getPlayers().size();
+                while (playerNumber != actualPlayerCount) {
+                    actualPlayerCount = multiplayerClient.getPlayers().size();
+                    System.out.println("Waiting for players to join");
+                    updateMessage("Waiting for players to join, total players: "
+                            + actualPlayerCount + " / " + playerNumber);
+                }
+                return null;
+            }
+
+            @Override
+            protected void updateMessage(String message) {
+                super.updateMessage(message);
+                Platform.runLater(() -> waitingDialog.setMessage(message));
+            }
+
+            @Override
+            protected void succeeded() {
+                super.succeeded();
+                Platform.runLater(waitingDialog::close);
+            }
+        };
+        new Thread(waitingTask).start();
+        return waitingDialog;
     }
 
     public void saveGame() throws IOException, InterruptedException {
@@ -146,9 +284,9 @@ public class AppController implements Observer {
         TextInputDialog saveGameDialog = new TextInputDialog();
         saveGameDialog.setTitle("Save Game");
         saveGameDialog.setHeaderText("Provide save-point name:");
-        Optional<String> result = saveGameDialog.showAndWait();
+        Optional<String> saveGameNameValue = saveGameDialog.showAndWait();
 
-        if (result.isPresent() && result.get() != "") {
+        if (saveGameNameValue.isPresent() && saveGameNameValue.get() != "") {
 
             HttpClient client = HttpClient.newHttpClient();
             ObjectMapper objectMapper = new ObjectMapper();
@@ -168,10 +306,10 @@ public class AppController implements Observer {
                                 .toArray(ServerPlayerModel[]::new));
 
                 ServerModel serverModel = new ServerModel(
-                        result.get(),
+                        saveGameNameValue.get(),
                         gameController.board.boardName,
                         gameController.board.getCurrentPlayer().getName(),
-                        result.get(),
+                        saveGameNameValue.get(),
                         gameController.board.getPhase(),
                         gameController.board.getStep(),
                         players);
@@ -253,7 +391,7 @@ public class AppController implements Observer {
 
                         BoardTemplate template = LoadBoard.GetBoardTemplate(savedPoint.GetBoardName());
                         Board board = new Board(template.width, template.height,
-                                savedPoint.GetName());
+                                savedPoint.GetBoardName());
                         for (SpaceTemplate spaceTemplate : template.spaces) {
                             Space space = board.getSpace(spaceTemplate.x, spaceTemplate.y);
                             if (space != null) {
