@@ -181,13 +181,12 @@ public class AppController implements Observer {
                 board = LoadBoard.loadBoard(resultBoardSelection.get());
             }
 
+
             if (gameController != null) {
                 if (!stopGame()) {
                     return;
                 }
             }
-
-            gameController = new GameController(board);
 
             var serverPlayers = multiplayerClient.getPlayers();
             for (int i = 0; i < serverPlayers.size(); i++) {
@@ -195,6 +194,9 @@ public class AppController implements Observer {
                 board.addPlayer(player);
                 player.setSpace(board.getSpace(i % board.width, i));
             }
+
+            gameController = new GameController(board);
+
 
             gameController.startProgrammingPhase();
             roboRally.createBoardView(gameController);
