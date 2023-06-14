@@ -23,41 +23,37 @@ This is our RoboRally project from the course [02324](https://kurser.dtu.dk/cour
 
 4. If you have problem with building the software and maven’s JavaFX installation, here you can find detailed information how to install it manually and set up the project properly, by following this tutorial: [FXIJ](https://openjfx.io/openjfx-docs/#IDE-Intellij).
 
-
 5. You have to make sure that the project runs with version 17.0.1, (with "File-->Project Structure-->Project Settings-->Project-->Project SDK-->17) 
-
 
 6. Start the program in directory `RoboRally_Game` --> `roborally-initial` --> `src` --> `main` --> `java` --> `roborally` --> and in the class `StartRoboRally`,  this class will start the program. 
 
+7. Start the server application from the server repo.
 
-7. Click 'File', and then 'New Game'.
+8. Click 'File', 'New Game' then choose New game and click Okay.
 
+9. Choose the numbers of players and wait for players to connect.
 
-8. Choose a board and then the numbers of players.
+10. Player 2 will click File, New Game then choose Join Game and after enter HostIP to join the game.
 
-
-9. Now you're ready to play.
+11. Now you're ready to play.
 
 
 ## Which current features our program have?
 - Walls - You won't be able to walk through walls.
 - Several kinds of programming cards like `Turn Right`, `Turn Left`, `Forward`, `Fast_Forward`, `Move three forward`, `Left or Right`, `Move one back` and `Turn 180 degrees`
-- 2 different boards `FirstBoard` and `SecondBoard`, created by JSON. 
+- 2 different boards `FirstBoard` and `SecondBoard`, created in JSON. 
 - That a robot can push one forward other robots in front of it
-- A counter to the Board which is counted up every time a player makes a move. The status line show the current player and the number of the current moves. 
+- Multiplayer 
 - FieldAction:
     - ConveyorBelt
     - Gears 
-    - Checkpoints - Still in progress.
-
-##We are currently working on:
+    - Checkpoints (You have to Pass through CP.1 then CP.2 to win the game
 - Saving a game
-- Loading a saved game.
-- Checkpoints
-- Other FieldActions like `Laser` and `Pits`
+- Loading a saved game. (only host can load the game and to load a game you start a new game with all the players then load it)
 
-##Plans for the future:
-Creating a database and storing a game in it, where you can load the game from the database.
-1. Create a game and save it in database.
-2. Load the game from the database
-3. Working on more FieldActions. 
+##Game functions working:
+
+- Checkpoints
+- Gear
+- Convoy/ Belt
+-Multiplayer 
