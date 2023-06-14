@@ -69,7 +69,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
- * ...
+ * The AppController class manages the overall game flow and interactions between the different
+ * parts of the game such as the GUI and the game logic. It also handles the communication with 
+ * the game server in a multiplayer game setting.
  *
  * @author Ekkart Kindler, ekki@dtu.dk
  * @author Mohamad Anwar Meri, s215713@dtu.dk
@@ -88,16 +90,25 @@ public class AppController implements Observer {
     public static ServerMultiplayerLogic smpl;
     public static int playerId = 0;
 
-    /**
-     * Making 2 different boards
-     * 
-     * @param roboRally
-     * @author Mohamad Anwar Meri, s215713@dtu.dk
-     */
+  /**
+ * Constructor for the AppController class. Initializes the AppController with a reference to 
+ * the current RoboRally game.
+ *
+ * @param roboRally the current RoboRally game
+ * @author Mohamad Anwar Meri, s215713@dtu.dk
+ */
 
     public AppController(@NotNull RoboRally roboRally) {
         this.roboRally = roboRally;
     }
+
+    /**
+ * The newGame method is responsible for setting up a new game. It handles both the setup of 
+ * a new game on the server and the joining of a game on a client. It interacts with the game server 
+ * to join or start a new game and retrieve the state of the game.
+ * 
+ * @auhtor Shaoib Zafar Mian, s200784@dtu.dk
+ */
 
     public void newGame() {
 
@@ -186,6 +197,8 @@ public class AppController implements Observer {
                 }
             }
 
+            // Initialize the players and add them to the board
+
             var serverPlayers = multiplayerClient.getPlayers();
             for (int i = 0; i < serverPlayers.size(); i++) {
                 Player player = new Player(
@@ -196,13 +209,15 @@ public class AppController implements Observer {
                 player.setSpace(board.getSpace(i % board.width, i));
             }
 
+// Create a new GameController with the board and start the programming phase
+
             gameController = new GameController(board);
 
             gameController.startProgrammingPhase();
             roboRally.createBoardView(gameController);
             multiplayerClient.start();
         }
-
+// Initialize the ServerMultiplayerLogic and start it
         smpl = new ServerMultiplayerLogic(
                 ipAddress,
                 serverIP,
@@ -213,12 +228,14 @@ public class AppController implements Observer {
         smpl.Start();
     }
 
+    
+
     private ServerWaitingDialog OptionStartWaitForPlayers(Optional<ServerStartDialog.DialogOption> serverStartResult) {
         ServerWaitingDialog waitingDialog = new ServerWaitingDialog();
         Task<Void> waitingTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                var multiplayerClient = new MultiplayerClient(serverIP);
+                MultiplayerClient multiplayerClient = new MultiplayerClient(serverIP);
                 var playerNumber = serverStartResult.get().getNumberOfPlayers();
                 var actualPlayerCount = multiplayerClient.getPlayers().size();
                 while (playerNumber != actualPlayerCount) {
